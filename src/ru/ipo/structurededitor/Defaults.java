@@ -6,7 +6,6 @@ import ru.ipo.structurededitor.controller.EditorsRegistryHook;
 import ru.ipo.structurededitor.controller.FieldMask;
 import ru.ipo.structurededitor.model.DSLBean;
 import ru.ipo.structurededitor.model.DSLBeansRegistry;
-import ru.ipo.structurededitor.testLang.comb.*;
 import ru.ipo.structurededitor.view.editors.*;
 
 /**
@@ -17,7 +16,7 @@ import ru.ipo.structurededitor.view.editors.*;
  */
 public class Defaults {
     public static void registerDefaultBeans(DSLBeansRegistry reg) {
-        reg.registerBean(ArrayExpr.class);
+       /* reg.registerBean(ArrayExpr.class);
         reg.registerBean(BinExpr.class);
         reg.registerBean(CountExaminer.class);
         reg.registerBean(IndexExaminer.class);
@@ -53,7 +52,7 @@ public class Defaults {
         reg.registerBean(ToNumExpr.class);
         reg.registerBean(CalcExpr.class);
         reg.registerBean(CalculableExpr.class);
-        reg.registerBean(ModCalculableExpr.class);
+        reg.registerBean(ModCalculableExpr.class);*/
 
     }
 
