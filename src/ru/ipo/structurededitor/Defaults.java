@@ -8,6 +8,8 @@ import ru.ipo.structurededitor.model.DSLBean;
 import ru.ipo.structurededitor.model.DSLBeansRegistry;
 import ru.ipo.structurededitor.view.editors.*;
 
+import java.util.Date;
+
 /**
  * Created by IntelliJ IDEA.
  * User: ilya
@@ -98,6 +100,9 @@ public class Defaults {
 
         editorsRegistry.registerEditor(boolean.class, BooleanEditor.class);
         editorsRegistry.registerEditor(Boolean.class, BooleanEditor.class);
+
+        editorsRegistry.registerEditor(Date.class, DateEditor.class);
+        editorsRegistry.registerEditor(byte[].class, FileEditor.class);
 
     }
 

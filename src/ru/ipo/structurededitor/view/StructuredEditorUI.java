@@ -7,6 +7,8 @@ import ru.ipo.structurededitor.view.events.*;
 import javax.swing.*;
 import javax.swing.plaf.ComponentUI;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.beans.PropertyChangeEvent;
@@ -27,6 +29,25 @@ public class StructuredEditorUI extends ComponentUI {
     private int charWidth;
     private int charDescent;
     private int charAscent;
+
+    private boolean caretVisible = true;
+    private static Timer caretBlinkTimer = new Timer(600, null);
+    private ActionListener caretBlinkListener = new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            //TODO implement normal blinking
+            caretVisible = !caretVisible;
+            editor.getModel().repaint();
+        }
+    };
+
+    static {
+        caretBlinkTimer.start();
+    }
+
+    public static ComponentUI createUI(JComponent component) {
+        return new StructuredEditorUI();
+    }
 
     public int getCharAscent() {
         return charAscent;
@@ -96,12 +117,20 @@ public class StructuredEditorUI extends ComponentUI {
         });
         editor.getModel().addCaretListener(new CaretListener() {
             public void showCaret(CaretEvent evt) {
-                evt.getD().getGraphics().setColor(Color.BLUE);
-                evt.getD().getGraphics().drawLine(
-                        xToPixels(editor.getModel().getAbsoluteCaretX()),
-                        yToPixels(editor.getModel().getAbsoluteCaretY()),
-                        xToPixels(editor.getModel().getAbsoluteCaretX()),
-                        yToPixels(editor.getModel().getAbsoluteCaretY()) + getCharHeight());
+                if (!editor.hasFocus() || !caretVisible)
+                    return;
+                Graphics g = evt.getD().getGraphics();
+
+                g.setColor(Color.BLUE);
+                int x0 = xToPixels(editor.getModel().getAbsoluteCaretX());
+                int y0 = yToPixels(editor.getModel().getAbsoluteCaretY());
+                int y1 = y0 + getCharHeight();
+                g.drawLine(x0, y0, x0, y0);
+                g.drawLine(x0-1, y0, x0-1, y1);
+//                g.drawLine(x0 - 2, y0, x0 - 1, y0);
+//                g.drawLine(x0 + 1, y0, x0 + 2, y0);
+//                g.drawLine(x0 - 2, y1, x0 - 1, y1);
+//                g.drawLine(x0 + 1, y1, x0 + 2, y1);
             }
         });
         editor.getModel().addRepaintListener(new RepaintListener() {
@@ -114,6 +143,13 @@ public class StructuredEditorUI extends ComponentUI {
         charWidth = fontMetrics.charWidth('m');
         charDescent = fontMetrics.getDescent();
         charAscent = fontMetrics.getAscent();
+
+        caretBlinkTimer.addActionListener(caretBlinkListener);
+    }
+
+    @Override
+    public void uninstallUI(JComponent c) {
+        caretBlinkTimer.removeActionListener(caretBlinkListener);
     }
 
     /**
@@ -125,7 +161,6 @@ public class StructuredEditorUI extends ComponentUI {
         VisibleElement element = se.getModel().getRootElement();
 
         Display d = new Display(g, this);
-
 
         //get focused rectangle
         VisibleElement focusedElement = se.getModel().getFocusedElement();
@@ -140,7 +175,7 @@ public class StructuredEditorUI extends ComponentUI {
         }
 
         //draw focused element
-        if (focusedRectangle != null) {
+        if (focusedRectangle != null && editor.hasFocus()) {
             g.setColor(Color.yellow);
             g.fillRect(focusedRectangle.x, focusedRectangle.y,
                     focusedRectangle.width, focusedRectangle.height);

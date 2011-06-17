@@ -176,13 +176,11 @@ public class StructuredEditorModel {
     }
 
     public void showCaret(Display d) {
-
         fireCaretShow(new CaretEvent(this, d));
     }
 
     public void repaint() {
         fireRepaint();
-
     }
 
     protected void fireRepaint() {

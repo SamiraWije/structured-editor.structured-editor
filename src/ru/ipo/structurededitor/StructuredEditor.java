@@ -17,20 +17,19 @@ import java.awt.event.MouseEvent;
  */
 public class StructuredEditor extends JComponent implements Scrollable {
 
+    static {
+        UIManager.put("StructuredEditorUI", "ru.ipo.structurededitor.view.StructuredEditorUI");
+    }
+
     public boolean isView() {
         return view;
     }
 
-    private boolean view=false;
-    public StructuredEditor() {
-
-        this(new StructuredEditorModel(new DefaultDSLBean()));
-    }
+    private boolean view = false;
 
     private StructuredEditorModel model;
 
     public Object getApp() {
-
         return app;
     }
 
@@ -42,11 +41,12 @@ public class StructuredEditor extends JComponent implements Scrollable {
 
     private Object app;
 
+    public StructuredEditor() {
+        this(new StructuredEditorModel(new DefaultDSLBean()));
+    }
+
     public StructuredEditor(StructuredEditorModel model) {
         setModel(model);
-
-        // TODO set UI by: getUiClassID, UIManager.install UI and so on
-        setUI(new StructuredEditorUI());
 
         setFocusable(true);
 
@@ -54,11 +54,12 @@ public class StructuredEditor extends JComponent implements Scrollable {
         enableEvents(AWTEvent.MOUSE_EVENT_MASK);
     }
 
-     public StructuredEditor(StructuredEditorModel model, boolean view) {
-       this(model);
-       this.view=view;
-       model.setView(view);
-     }
+    public StructuredEditor(StructuredEditorModel model, boolean view) {
+        this(model);
+        this.view = view;
+        model.setView(view);
+    }
+
     public StructuredEditorModel getModel() {
         return model;
     }
@@ -117,7 +118,7 @@ public class StructuredEditor extends JComponent implements Scrollable {
 
     @Override
     protected void processComponentKeyEvent(KeyEvent e) {
-        if (!view){
+        if (!view) {
             VisibleElement el = model.getFocusedElement();
             while (el != null) {
                 el.fireKeyEvent(e);
@@ -130,41 +131,41 @@ public class StructuredEditor extends JComponent implements Scrollable {
 
     @Override
     protected void processMouseEvent(MouseEvent e) {
-       if (!view){
-        VisibleElementsGraph graph = new VisibleElementsGraph(model
-                .getRootElement());
-        int x = getUI().pixelsToX((e.getX()));
-        int y = getUI().pixelsToY((e.getY()));
+        if (!view) {
+            VisibleElementsGraph graph = new VisibleElementsGraph(model
+                    .getRootElement());
+            int x = getUI().pixelsToX((e.getX()));
+            int y = getUI().pixelsToY((e.getY()));
 
-        TextPosition tp = model.getRootElement().getAbsolutePosition();
-        int w = model.getRootElement().getWidth();
-        int h = model.getRootElement().getHeight();
-        if (e.getID() == MouseEvent.MOUSE_CLICKED && x <= tp.getColumn() + w && y <= tp.getLine() + h) {
-            this.requestFocusInWindow();
-         /*   if (app!=null){
-                try {
-                   app.getClass().getSuperclass().getDeclaredMethod("clearSelectedGeos").invoke(app);
-                } catch (Exception ex) {
-                    throw new Error(ex);
-                }
-            }*/
-            TextPosition p = graph.normalize(new TextPosition(y, x), VisibleElementsGraph.Direction.Down);
-            x = p.getColumn();
-            y = p.getLine();
-            model.setAbsoluteCaretY(y);
-            model.setAbsoluteCaretX(x);
-            VisibleElement newFocused = graph.findElementByPos(x, y);
-            if (newFocused == model.getFocusedElement())
-                model.repaint();
-            else
-                model.setFocusedElement(newFocused);
-            //VisibleElement el = model.getRootElement();
-            e = new MouseEvent((Component) e.getSource(), e.getID(), e.getWhen(), e.getModifiers(), x,
-                    y, e.getClickCount(), e.isPopupTrigger(), e.getButton());
-            newFocused.fireMouseEvent(e);
+            TextPosition tp = model.getRootElement().getAbsolutePosition();
+            int w = model.getRootElement().getWidth();
+            int h = model.getRootElement().getHeight();
+            if (e.getID() == MouseEvent.MOUSE_CLICKED && x <= tp.getColumn() + w && y <= tp.getLine() + h) {
+                this.requestFocusInWindow();
+                /*   if (app!=null){
+                    try {
+                       app.getClass().getSuperclass().getDeclaredMethod("clearSelectedGeos").invoke(app);
+                    } catch (Exception ex) {
+                        throw new Error(ex);
+                    }
+                }*/
+                TextPosition p = graph.normalize(new TextPosition(y, x), VisibleElementsGraph.Direction.Down);
+                x = p.getColumn();
+                y = p.getLine();
+                model.setAbsoluteCaretY(y);
+                model.setAbsoluteCaretX(x);
+                VisibleElement newFocused = graph.findElementByPos(x, y);
+                if (newFocused == model.getFocusedElement())
+                    model.repaint();
+                else
+                    model.setFocusedElement(newFocused);
+                //VisibleElement el = model.getRootElement();
+                e = new MouseEvent((Component) e.getSource(), e.getID(), e.getWhen(), e.getModifiers(), x,
+                        y, e.getClickCount(), e.isPopupTrigger(), e.getButton());
+                newFocused.fireMouseEvent(e);
 
+            }
         }
-       }
 
     }
 
@@ -187,10 +188,18 @@ public class StructuredEditor extends JComponent implements Scrollable {
     }
 
     public void setModel(StructuredEditorModel model) {
-        //model.setEditor(this);
         this.model = model;
-        setUI(new StructuredEditorUI());
+        updateUI();
     }
 
+    @Override
+    public String getUIClassID() {
+        return "StructuredEditorUI";
+    }
+
+    @Override
+    public void updateUI() {
+        setUI(UIManager.getUI(this));
+    }
 
 }
