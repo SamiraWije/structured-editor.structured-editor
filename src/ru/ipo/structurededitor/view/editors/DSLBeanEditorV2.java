@@ -8,9 +8,10 @@ import ru.ipo.structurededitor.view.StructuredEditorModel;
 import ru.ipo.structurededitor.view.elements.ComboBoxTextEditorElement;
 import ru.ipo.structurededitor.view.elements.ContainerElement;
 import ru.ipo.structurededitor.view.elements.TextElement;
+import ru.ipo.structurededitor.view.elements.VisibleElement;
 import ru.ipo.structurededitor.view.events.ComboBoxSelectListener;
 
-import javax.swing.text.MaskFormatter;
+import javax.swing.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.lang.reflect.Modifier;
@@ -22,12 +23,13 @@ import java.util.List;
  * Date: 03.01.2010
  * Time: 23:49:11
  */
-public class DSLBeanEditor extends FieldEditor {
+public class DSLBeanEditorV2 extends FieldEditor {
 
     private TextElement innerElement;
-    //private ContainerElement container;
     private StructuredEditorModel model;
-    boolean isAbstract;
+    private boolean isAbstract;
+
+    private static final KeyStroke deleteStroke = KeyStroke.getKeyStroke("control DELETE");
 
     /**
      * Returns text that is shown when value is null
@@ -53,24 +55,10 @@ public class DSLBeanEditor extends FieldEditor {
     }
 
     private void setNonAbstractInnerElement() {
-        final Class<?> beanType;
-        FieldMask mask = getMask();
-        if (mask != null)
-            beanType = mask.getValueClass(getFieldType());
-        else
-            beanType = getFieldType();
-
         innerElement.addKeyListener(new KeyListener() {
             public void keyTyped(KeyEvent e) {
                 if (Character.isLetterOrDigit(e.getKeyChar())) {
-                    try {
-                        DSLBean o;
-                        o = (DSLBean) beanType.newInstance();
-                        setValue(o);
-                        updateElement();
-                    } catch (Exception e1) {
-                        throw new Error("Failed to instantiate bean: " + e1);
-                    }
+                    resetValue();
                 }
             }
 
@@ -82,24 +70,28 @@ public class DSLBeanEditor extends FieldEditor {
         });
     }
 
-    public DSLBeanEditor(Object o, String fieldName, FieldMask mask, StructuredEditorModel model) {
+    private void resetValue() {
+        try {
+            setValue(
+                    getMaskedFieldType().newInstance()
+            );
+            updateElement();
+        } catch (Exception e1) {
+            throw new Error("Failed to instantiate bean: " + e1);
+        }
+    }
+
+    public DSLBeanEditorV2(Object o, String fieldName, FieldMask mask, StructuredEditorModel model) {
         super(o, fieldName, mask, model);
         this.model = model;
 
         setModificationVector(model.getModificationVector());
 
-        if (mask == null) {
-            isAbstract = Modifier.isAbstract(getFieldType().getModifiers());
-        } else {
-            isAbstract = Modifier.isAbstract(mask.getValueClass(getFieldType()).getModifiers());
-        }
+        isAbstract = Modifier.isAbstract(getMaskedFieldType().getModifiers());
 
-        final ComboBoxTextEditorElement<Class<? extends DSLBean>> beanClassSelectionElement;
         if (isAbstract) {
-            beanClassSelectionElement = createBeanSelectionElement(model);
-            innerElement = beanClassSelectionElement;
+            innerElement = createBeanSelectionElement(model);
         } else {
-            beanClassSelectionElement = null;
             innerElement = new TextElement(model, "");
             innerElement.setEmptyString(getEmptyText());
         }
@@ -112,7 +104,7 @@ public class DSLBeanEditor extends FieldEditor {
         }
         container.addKeyListener(new KeyListener() {
             public void keyTyped(KeyEvent e) {
-                if ((e.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK) != 0 && e.getKeyChar() == '\u0001') { //Ctrl+a
+                if (deleteStroke.equals(KeyStroke.getKeyStrokeForEvent(e))) {
                     if (getValue() != null) {
                         container.setSubElement(innerElement);
                         setValue(null);
@@ -120,7 +112,6 @@ public class DSLBeanEditor extends FieldEditor {
                     }
                 }
             }
-
 
             public void keyPressed(KeyEvent e) {
             }
@@ -131,31 +122,20 @@ public class DSLBeanEditor extends FieldEditor {
 
         setElement(container);
         updateElement();
-
-
     }
-
 
     private void setComboBoxList() {
         ComboBoxTextEditorElement<Class<? extends DSLBean>> beanClassSelectionElement =
                 (ComboBoxTextEditorElement<Class<? extends DSLBean>>) innerElement;
         List<Class<? extends DSLBean>> classes;
-        FieldMask mask = getMask();
-        if (mask != null)
-            classes = model.getBeansRegistry().
-                    getAllSubclasses((Class<? extends DSLBean>) mask.getValueClass(getFieldType()), true);
-        else
-            classes = model.getBeansRegistry().getAllSubclasses((Class<? extends DSLBean>) getFieldType(), true);
+        classes = model.getBeansRegistry().getAllSubclasses((Class<? extends DSLBean>) getMaskedFieldType(), true);
         for (Class<? extends DSLBean> clazz : classes) {
-            DSLBeanParams beanParams;
-            beanParams = clazz.getAnnotation(DSLBeanParams.class);
-            //String str;
+            DSLBeanParams beanParams = clazz.getAnnotation(DSLBeanParams.class);
             if (beanParams == null) {
                 beanClassSelectionElement.addValue(clazz.getSimpleName(), "", clazz);
             } else {
                 beanClassSelectionElement.addValue(beanParams.shortcut(), beanParams.description(), clazz);
             }
-
         }
     }
 
@@ -226,7 +206,6 @@ public class DSLBeanEditor extends FieldEditor {
             EditorRenderer renderer = new EditorRenderer(model, (DSLBean) value);
             container.setSubElement(renderer.getRenderResult());
         }
-        // model.setFocusedElementAndCaret(container);
     }
 
 }

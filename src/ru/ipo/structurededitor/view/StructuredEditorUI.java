@@ -1,10 +1,13 @@
 package ru.ipo.structurededitor.view;
 
 import ru.ipo.structurededitor.StructuredEditor;
+import ru.ipo.structurededitor.actions.ActionsListComponent;
+import ru.ipo.structurededitor.actions.VisibleElementAction;
 import ru.ipo.structurededitor.view.elements.VisibleElement;
 import ru.ipo.structurededitor.view.events.*;
 
 import javax.swing.*;
+import javax.swing.Timer;
 import javax.swing.plaf.ComponentUI;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -13,7 +16,7 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.Vector;
+import java.util.*;
 
 /**
  * Created by IntelliJ IDEA. User: Ilya Date: 02.01.2010 Time: 16:59:16
@@ -21,14 +24,14 @@ import java.util.Vector;
 public class StructuredEditorUI extends ComponentUI {
 
     protected StructuredEditor editor;
-    public static final int HORIZONTAL_MARGIN = 0;
-    public static final int VERTICAL_MARGIN = 0;
-    public static final Font FONT = new Font(Font.MONOSPACED, Font.PLAIN, 14);
 
     private int charHeight;
     private int charWidth;
     private int charDescent;
     private int charAscent;
+
+    private int horizontalMargin;
+    private int verticalMargin;
 
     private boolean caretVisible = true;
     private static Timer caretBlinkTimer = new Timer(600, null);
@@ -41,12 +44,21 @@ public class StructuredEditorUI extends ComponentUI {
         }
     };
 
+    private PopupSupport popupSupport;
+
+    private static HashMap<JComponent, StructuredEditorUI> editor2ui = new HashMap<JComponent, StructuredEditorUI>();
+
     static {
         caretBlinkTimer.start();
     }
 
     public static ComponentUI createUI(JComponent component) {
-        return new StructuredEditorUI();
+        StructuredEditorUI ui = editor2ui.get(component);
+        if (ui == null) {
+            ui = new StructuredEditorUI();
+            editor2ui.put(component, ui);
+        }
+        return ui;
     }
 
     public int getCharAscent() {
@@ -68,8 +80,8 @@ public class StructuredEditorUI extends ComponentUI {
     @Override
     public Dimension getPreferredSize(JComponent c) {
         VisibleElement root = editor.getModel().getRootElement();
-        int width = 2 * HORIZONTAL_MARGIN + root.getWidth() * getCharWidth();
-        int height = 2 * VERTICAL_MARGIN + root.getHeight() * getCharHeight()
+        int width = 2 * horizontalMargin + root.getWidth() * getCharWidth();
+        int height = 2 * verticalMargin + root.getHeight() * getCharHeight()
                 + getCharDescent();
         return new Dimension(width, height);
     }
@@ -78,14 +90,30 @@ public class StructuredEditorUI extends ComponentUI {
     public void installUI(JComponent c) {
         c.setBackground(Color.white);
         c.setOpaque(true);
-        c.setFont(FONT);
+        c.setFont(UIManager.getFont("StructuredEditor.font"));
 
         editor = (StructuredEditor) c;
+        popupSupport = new PopupSupport(editor);
+
+        FontMetrics fontMetrics = c.getFontMetrics(UIManager.getFont("StructuredEditor.font"));
+        charHeight = fontMetrics.getHeight();
+        charWidth = fontMetrics.charWidth('m');
+        charDescent = fontMetrics.getDescent();
+        charAscent = fontMetrics.getAscent();
+
+        horizontalMargin = UIManager.getInt("StructuredEditor.horizontalMargin");
+        verticalMargin = UIManager.getInt("StructuredEditor.verticalMargin");
+
+        caretBlinkTimer.addActionListener(caretBlinkListener);
 
         //add listeners
         editor.getModel().addPropertyChangeListener("focusedElement",
                 new PropertyChangeListener() {
                     public void propertyChange(PropertyChangeEvent evt) {
+                        popupSupport.hide();
+
+                        updateAvailableActions();
+
                         redrawEditor();
                     }
                 });
@@ -98,8 +126,14 @@ public class StructuredEditorUI extends ComponentUI {
 
                 x = xToPixels(x) + editor.getLocationOnScreen().x;
                 y = yToPixels(y) + editor.getLocationOnScreen().y;
-                ListDialog dialog = new ListDialog(editor, filteredPopupList.toArray(),
-                        filteredPopupList.get(0), evt.getLongStr(), x, y);
+                ListDialog dialog = new ListDialog(
+                        editor,
+                        filteredPopupList.toArray(),
+                        filteredPopupList.get(0),
+                        evt.getLongStr(),
+                        x,
+                        y
+                );
                 redrawEditor();
                 return dialog;
             }
@@ -115,6 +149,7 @@ public class StructuredEditorUI extends ComponentUI {
                 redrawEditor();
             }
         });
+
         editor.getModel().addCaretListener(new CaretListener() {
             public void showCaret(CaretEvent evt) {
                 if (!editor.hasFocus() || !caretVisible)
@@ -127,24 +162,50 @@ public class StructuredEditorUI extends ComponentUI {
                 int y1 = y0 + getCharHeight();
                 g.drawLine(x0, y0, x0, y0);
                 g.drawLine(x0-1, y0, x0-1, y1);
-//                g.drawLine(x0 - 2, y0, x0 - 1, y0);
-//                g.drawLine(x0 + 1, y0, x0 + 2, y0);
-//                g.drawLine(x0 - 2, y1, x0 - 1, y1);
-//                g.drawLine(x0 + 1, y1, x0 + 2, y1);
             }
         });
+
         editor.getModel().addRepaintListener(new RepaintListener() {
             public void repaint() {
                 redrawEditor();
             }
         });
-        FontMetrics fontMetrics = c.getFontMetrics(FONT);
-        charHeight = fontMetrics.getHeight();
-        charWidth = fontMetrics.charWidth('m');
-        charDescent = fontMetrics.getDescent();
-        charAscent = fontMetrics.getAscent();
 
-        caretBlinkTimer.addActionListener(caretBlinkListener);
+        editor.getModel().addPopupComponentChangedListener(new PopupComponentChangedListener() {
+            @Override
+            public void componentChanged(PopupComponentChangedEvent event) {
+                StructuredEditorModel model = editor.getModel();
+                VisibleElement element = model.getFocusedElement();
+                JComponent component = event.getPopupComponent();
+                if (element == null || component == null) {
+                    popupSupport.hide();
+                    return;
+                }
+
+                TextPosition position = element.getAbsolutePosition();
+                Point locationOnScreen = editor.getLocationOnScreen();
+
+                popupSupport.show(
+                        component,
+                        xToPixels(position.getColumn()) + (int)locationOnScreen.getX(),
+                        yToPixels(position.getLine() + element.getHeight()) + (int)locationOnScreen.getY()
+                );
+            }
+        });
+    }
+
+    private void updateAvailableActions() {
+        VisibleElement focusedElement = editor.getModel().getFocusedElement();
+        Collection<? extends VisibleElementAction> actions;
+        if (focusedElement == null)
+            actions = new ArrayList<VisibleElementAction>(0);
+        else
+            actions = focusedElement.getAllAvailableActions();
+        ActionsListComponent actionsListComponent = editor.getActionsListComponent();
+
+        actionsListComponent.clearActions();
+        for (VisibleElementAction action : actions)
+            actionsListComponent.addAction(action);
     }
 
     @Override
@@ -201,18 +262,18 @@ public class StructuredEditorUI extends ComponentUI {
     }
 
     public int xToPixels(int x) {
-        return StructuredEditorUI.HORIZONTAL_MARGIN + x * getCharWidth();
+        return horizontalMargin + x * getCharWidth();
     }
 
     public int yToPixels(int y) {
-        return StructuredEditorUI.VERTICAL_MARGIN + y * getCharHeight();
+        return verticalMargin + y * getCharHeight();
     }
 
     public int pixelsToX(int x) {
-        return (x - StructuredEditorUI.HORIZONTAL_MARGIN) / getCharWidth();
+        return (x - horizontalMargin) / getCharWidth();
     }
 
     public int pixelsToY(int y) {
-        return (y - StructuredEditorUI.VERTICAL_MARGIN) / getCharHeight();
+        return (y - verticalMargin) / getCharHeight();
     }
 }

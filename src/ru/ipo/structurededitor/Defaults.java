@@ -82,8 +82,9 @@ public class Defaults {
                 }
 
                 Class[] interf = valueType.getInterfaces();
+                //TODO why only [0]?
                 if (interf != null && interf.length > 0 && valueType.getInterfaces()[0] == DSLBean.class) {
-                    return DSLBeanEditor.class;
+                    return DSLBeanEditorV3.class;
                 }
                 return null;
             }

@@ -10,7 +10,7 @@ public class HorizArray implements Cell {
      */
     private String fieldName;
     private char spaceChar = 0;
-    boolean singleLined;
+    private boolean singleLined;
 
     public boolean getSingleLined() {
         return singleLined;

@@ -1,5 +1,6 @@
 package ru.ipo.structurededitor.view.elements;
 
+import ru.ipo.structurededitor.actions.VisibleElementAction;
 import ru.ipo.structurededitor.view.Display;
 import ru.ipo.structurededitor.view.StructuredEditorModel;
 import ru.ipo.structurededitor.view.TextPosition;
@@ -10,6 +11,8 @@ import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * View часть ячейки (Cell)
@@ -25,11 +28,11 @@ public abstract class VisibleElement {
     private int width;
     private int height;
 
+    private List<VisibleElementAction> actions = new ArrayList<VisibleElementAction>();
 
     protected VisibleElement(StructuredEditorModel model) {
         this.model = model;
     }
-
 
     //key listeners
 
@@ -60,6 +63,7 @@ public abstract class VisibleElement {
      */
 
     public void fireKeyEvent(KeyEvent e) {
+        //let all listeners process the event
         for (int i = keyListeners.size() - 1; i >= 0; i--) {
             KeyListener l = keyListeners.get(i);
             switch (e.getID()) {
@@ -77,6 +81,7 @@ public abstract class VisibleElement {
                 return;
         }
 
+        //let the element itself process the event
         if (e.getID() != KeyEvent.KEY_PRESSED)
             return;
         if (!e.isConsumed())
@@ -86,8 +91,6 @@ public abstract class VisibleElement {
     public void fireMouseEvent(MouseEvent e) {
         processMouseEvent(e);
     }
-
-
 
     public TextPosition getAbsolutePosition() {
         int line = 0;
@@ -190,27 +193,6 @@ public abstract class VisibleElement {
         return false;
     }
 
-    //------------------- PropertyChangedSupport --------
-
-    protected void processKeyEvent(KeyEvent e) {
-    }
-
-    protected void processMouseEvent(MouseEvent e) {
-    }
-
-    public void removeKeyListener(KeyListener listener) {
-        keyListeners.remove(listener);
-    }
-
-    public void removePropertyChangeListener(PropertyChangeListener listener) {
-        pcs.removePropertyChangeListener(listener);
-    }
-
-    public void removePropertyChangeListener(String propertyName,
-                                             PropertyChangeListener listener) {
-        pcs.removePropertyChangeListener(propertyName, listener);
-    }
-
     public void repaint() {
         getModel().repaint();
     }
@@ -229,5 +211,56 @@ public abstract class VisibleElement {
         int oldValue = this.width;
         this.width = width;
         pcs.firePropertyChange("width", oldValue, width);
+    }
+
+    protected void processKeyEvent(KeyEvent e) {
+    }
+
+    protected void processMouseEvent(MouseEvent e) {
+    }
+
+    public void removeKeyListener(KeyListener listener) {
+        keyListeners.remove(listener);
+    }
+
+    //------------------- PropertyChangedSupport --------
+
+    public void removePropertyChangeListener(PropertyChangeListener listener) {
+        pcs.removePropertyChangeListener(listener);
+    }
+
+    public void removePropertyChangeListener(String propertyName,
+                                             PropertyChangeListener listener) {
+        pcs.removePropertyChangeListener(propertyName, listener);
+    }
+
+    //------------------ Actions List -----------------
+    public void addAction(VisibleElementAction action) {
+        actions.add(action);
+    }
+
+    public void removeAction(VisibleElementAction action) {
+        actions.remove(action);
+    }
+
+    public Collection<? extends VisibleElementAction> getActions() {
+        return actions;
+    }
+
+    /**
+     * Returns actions that are available from this element and from all its containers
+     * @return
+     */
+    public Collection<? extends VisibleElementAction> getAllAvailableActions() {
+        List<VisibleElementAction> allActions = new ArrayList<VisibleElementAction>();
+
+        VisibleElement element = this;
+        while (element != null) {
+            allActions.addAll(element.getActions());
+
+            element = element.getParent();
+        }
+
+        return allActions;
     }
 }

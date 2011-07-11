@@ -26,8 +26,6 @@ public class ComboBoxTextEditorElement<T> extends TextEditorElement {
     private EventListenerList listenerList = new EventListenerList();
     private HashMap<String, T> values = new HashMap<String, T>();
 
-    //    private DefaultListModel listModel = new DefaultListModel();
-//    private JList list;
     private ListDialog dialog;
     private Vector<String> popupList = new Vector<String>();
 
@@ -52,43 +50,6 @@ public class ComboBoxTextEditorElement<T> extends TextEditorElement {
     public void removeComboBoxSelectListener(ComboBoxSelectListener l) {
         listenerList.remove(ComboBoxSelectListener.class, l);
     }
-
-    //private JList popupList = new JList(listModel);
-    //private int maxListItemLength = 0;
-
-    /*public void actionPerformed(ActionEvent e) {
-        setMarkPosition(-1, -1);
-        String text = e.getActionCommand();
-        if (text.indexOf(' ') != -1)
-            text = text.substring(0, text.indexOf(' '));
-        setText(text);
-        setCaretPosition(text.length(), 0);
-    } */
-
-    /*public void showPopup(int x, int y) {
-        /*if (isPopupVisible())
-            getModel().getEditor().remove(popup);* /
-        list = ListDialog.showDialog(getModel().getEditor(),  filteredPopupList.toArray(),
-                filteredPopupList.get(0),longStr, x, y, this);
-        dialog=ListDialog.getDialog();
-        //return (String) list.getSelectedValue();
-        //popup.show(getModel().getEditor(), x, y);
-
-        //JPopupMenu popUp;
-        //popUp.getUI().get
-
-        //popup.show();
-    } */
-
-    /*public boolean isPopupVisible() {
-        return popup.isVisible();
-    }
-
-    public void hidePopup() {
-        getModel().getEditor().remove(popup);
-        //popup.hide();
-        //popup = null;
-    } */
 
     public void fireSelect() {
         Object[] listeners = listenerList.getListenerList();
@@ -158,49 +119,9 @@ public class ComboBoxTextEditorElement<T> extends TextEditorElement {
                     return;
                 }
                 break;
-            /*case KeyEvent.VK_LEFT:
-            case KeyEvent.VK_RIGHT:
-            case KeyEvent.VK_ESCAPE:
-                if (isPopupVisible())
-                    hidePopup();
-                break;
-            case KeyEvent.VK_UP:
-                int n1 = popup.getComponentCount();
-                if (isPopupVisible()) {
-                    sm = popup.getSelectionModel();
-                    sm.setSelectedIndex((n1 + popup.getSelectionModel().getSelectedIndex() - 1) % n1);
-                    e.consume();
-                    return;
-                }
-                break;
-            case KeyEvent.VK_DOWN:
-                int n2 = popup.getSubElements().length;
-                sm = popup.getSelectionModel();
-                if (isPopupVisible()) {
-                    sm.setSelectedIndex((n2 + popup.getSelectionModel().getSelectedIndex() + 1) % n2);
-                    e.consume();
-                    return;
-                }
-                break;
-            case KeyEvent.VK_ENTER:
-                if (isPopupVisible()) {
-                    setMarkPosition(-1);
-                    sm = popup.getSelectionModel();
-                    String text = popup.getComponent(sm.getSelectedIndex()).getName();
-                    if (text.indexOf(' ') != -1)
-                        text = text.substring(0, text.indexOf(' '));
-                    setText(text);
-                    setCaretPosition(text.length());
-                    hidePopup();
-                    e.consume();
-                    return;
-                }
-                break; */
         }
 
         super.processKeyEvent(e);
-        /*if (isPopupVisible())
-            findLocAndShowPopup();*/
     }
 
     private void findLocAndShowPopup() {
@@ -235,11 +156,6 @@ public class ComboBoxTextEditorElement<T> extends TextEditorElement {
             sm.setSelectedIndex(0);
         } */
     }
-
-    /*public void clearValues() {
-        popup.removeAll();
-        values.clear();
-    } */
 
     public void justifyList() {
         int maxListItemLength = 0;
@@ -276,7 +192,6 @@ public class ComboBoxTextEditorElement<T> extends TextEditorElement {
         }
 
     }
-
 
     public void addValue(final String shortcut, String description, final T value) {
         String text = shortcut + " " + description;

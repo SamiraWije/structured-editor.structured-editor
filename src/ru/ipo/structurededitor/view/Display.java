@@ -1,5 +1,6 @@
 package ru.ipo.structurededitor.view;
 
+import javax.swing.*;
 import java.awt.*;
 
 /**
@@ -13,7 +14,7 @@ public class Display {
     public Display(Graphics g, StructuredEditorUI ui) {
         this.g = g;
         this.ui = ui;
-        g.setFont(StructuredEditorUI.FONT);
+        g.setFont(UIManager.getFont("StructuredEditor.font"));
     }
 
     /**
@@ -25,7 +26,7 @@ public class Display {
      * @param tp форматирование текста (цвет, жирность)
      */
     public void drawString(String s, int x, int y, TextProperties tp) {
-        Font f = StructuredEditorUI.FONT;
+        Font f = UIManager.getFont("StructuredEditor.font");
         if (f.getStyle() != tp.getStyle())
             f = f.deriveFont(tp.getStyle());
 

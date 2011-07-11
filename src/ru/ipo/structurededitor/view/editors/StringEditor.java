@@ -14,11 +14,12 @@ import java.beans.PropertyChangeListener;
  * Time: 22:36:47
  */
 public class StringEditor extends FieldEditor {
+
     public StringEditor(Object o, String fieldName, FieldMask mask, boolean singleLined, StructuredEditorModel model) {
         super(o, fieldName, mask, singleLined, model);
         setModificationVector(model.getModificationVector());
-        String str;
-        str = (String) getValue();
+        String str = (String) getValue();
+
         final TextEditorElement editorElement;
         editorElement = new TextEditorElement(model, str, singleLined);
         editorElement.addPropertyChangeListener("text", new PropertyChangeListener() {
@@ -26,6 +27,7 @@ public class StringEditor extends FieldEditor {
                 setValue(editorElement.getText());
             }
         });
+
         setElement(editorElement);
     }
 

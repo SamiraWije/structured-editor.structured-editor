@@ -7,6 +7,7 @@ import ru.ipo.structurededitor.model.DSLBeansRegistry;
 import ru.ipo.structurededitor.view.elements.VisibleElement;
 import ru.ipo.structurededitor.view.events.*;
 
+import javax.swing.*;
 import javax.swing.event.EventListenerList;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -142,10 +143,6 @@ public class StructuredEditorModel {
         pcs.addPropertyChangeListener(propertyName, listener);
     }
 
-    /*public StructuredEditor getEditor() {
-        return editor;
-    } */
-
     public void addCaretListener(CaretListener l) {
         listenerList.add(CaretListener.class, l);
     }
@@ -208,7 +205,6 @@ public class StructuredEditorModel {
             }
         }
         return null;
-
     }
 
     protected void fireCaretShow(CaretEvent ce) {
@@ -289,11 +285,12 @@ public class StructuredEditorModel {
         this.focusedElement = focusedElement;
         pcs.firePropertyChange("focusedElement", oldValue, focusedElement);
 
-        if (oldValue != null)
+        if (oldValue != null) {
             oldValue.fireFocusChanged(true);
-        if (focusedElement != null)
+        }
+        if (focusedElement != null) {
             focusedElement.fireFocusChanged(false);
-
+        }
     }
 
     public void setRootElement(VisibleElement rootElement) {
@@ -307,5 +304,34 @@ public class StructuredEditorModel {
         setAbsoluteCaretY(tp.getLine());
         setFocusedElement(visibleElement);
         repaint();
+    }
+
+    //popup component changed event: add, remove, fire
+
+    protected void firePopupComponentChangedEvent(JComponent popupComponent) {
+        PopupComponentChangedEvent event = new PopupComponentChangedEvent(this, popupComponent);
+
+        Object[] listeners = listenerList.getListenerList();
+        for (int i = listeners.length - 2; i >= 0; i -= 2) {
+            if (listeners[i] == PopupComponentChangedListener.class) {
+                ((PopupComponentChangedListener) listeners[i + 1]).componentChanged(event);
+            }
+        }
+    }
+
+    public void addPopupComponentChangedListener(PopupComponentChangedListener listener) {
+        listenerList.add(PopupComponentChangedListener.class, listener);
+    }
+
+    public void removePopupComponentChangedListener(PopupComponentChangedListener listener) {
+        listenerList.remove(PopupComponentChangedListener.class, listener);
+    }
+
+    public void showPopup(JComponent popupComponent) {
+        firePopupComponentChangedEvent(popupComponent);
+    }
+
+    public void hidePopup() {
+        firePopupComponentChangedEvent(null);
     }
 }

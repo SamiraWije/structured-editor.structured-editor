@@ -203,20 +203,6 @@ public class TextEditorElement extends TextElement {
         }
     }
 
-    /*
-    @Override
-    public void gainFocus(TextPosition pos, boolean shift, boolean ctrl) {
-        String text = getText();
-        if (text == null)
-            text = "";
-        if (pos.getColumn() >= 0 && pos.getColumn() <= text.length())
-            moveCaret(pos.getColumn(), shift);
-        repaint();
-
-        getModel().setFocusedElement(this);
-    }
-    */
-
     private void buttonChar(char c) {
         int x0 = getAbsolutePosition().getColumn();
         int y0 = getAbsolutePosition().getLine();

@@ -19,16 +19,31 @@ public abstract class FieldEditor {
     private Object o;
     private String fieldName;
     private boolean singleLined = false;
-
-    public VisibleElement getElement() {
-        return editorElement;
-    }
-
-    protected void setElement(VisibleElement editorElement) {
-        this.editorElement = editorElement;
-    }
+    private final StructuredEditorModel model;
 
     private VisibleElement editorElement;
+
+    private FieldMask mask;
+
+    private ModificationVector modificationVector;
+
+    public FieldEditor(Object o, String fieldName, FieldMask mask, boolean singleLined, StructuredEditorModel model) {
+        this.o = o;
+        this.fieldName = fieldName;
+        this.mask = mask;
+        this.singleLined = singleLined;
+        this.model = model;
+        //empty = forcedGetValue() == null;
+    }
+
+    public FieldEditor(Object o, String fieldName, FieldMask mask, StructuredEditorModel model) {
+        this.o = o;
+        this.fieldName = fieldName;
+        this.mask = mask;
+        this.model = model;
+
+        //empty = forcedGetValue() == null;
+    }
 
     public FieldMask getMask() {
         return mask;
@@ -39,47 +54,17 @@ public abstract class FieldEditor {
         updateElement();
     }
 
-    private FieldMask mask;
-    //private boolean arrItem;
-    //private boolean empty = true;
-
     public void setModificationVector(ModificationVector modificationVector) {
         this.modificationVector = modificationVector;
     }
 
-    private ModificationVector modificationVector;
-
-    /*ModificationEventSupport mes=new ModificationEventSupport();
-   public void addModificationListener(ModificationListener l) {
-       mes.addModificationListener(l);
-   }
-
-   public void removeModificationListener(ModificationListener l) {
-       mes.removeModificationListener(l);
-   } */
-    public FieldEditor(Object o, String fieldName, FieldMask mask, boolean singleLined, StructuredEditorModel model) {
-        this.o = o;
-        this.fieldName = fieldName;
-        this.mask = mask;
-        this.singleLined = singleLined;
-        //empty = forcedGetValue() == null;
+    public VisibleElement getElement() {
+        return editorElement;
     }
 
-    public FieldEditor(Object o, String fieldName, FieldMask mask, StructuredEditorModel model) {
-        this.o = o;
-        this.fieldName = fieldName;
-        this.mask = mask;
-
-        //empty = forcedGetValue() == null;
+    protected void setElement(VisibleElement editorElement) {
+        this.editorElement = editorElement;
     }
-
-    /*public FieldEditor(Object o, String fieldName, int index) {
-        this.o = o;
-        this.fieldName = fieldName;
-        this.index = index;
-        this.arrItem = true;
-        //empty = forcedGetValue() == null;
-    } */
 
     protected Object getObject() {
         return o;
@@ -92,18 +77,6 @@ public abstract class FieldEditor {
     protected String getFieldName() {
         return fieldName;
     }
-
-
-    /*protected boolean isEmpty() {
-        return empty;
-    }   */
-
-    /*protected void setEmpty(boolean empty) {
-        this.empty = empty;
-        Object val = getValue();
-        if (!isArrItem())
-            EmptyFieldsRegistry.getInstance().setEmpty((DSLBean) getObject(), getFieldName(), empty);
-    } */
 
     public ModificationVector getModificationVector() {
         return modificationVector;
@@ -166,23 +139,6 @@ public abstract class FieldEditor {
         }
     }
 
-    /*protected Object forcedGetValue() {
-        try {
-            PropertyDescriptor pd = new PropertyDescriptor(getFieldName(), getObject().getClass());
-            Method wm = pd.getReadMethod();
-            Object value = wm.invoke(getObject());
-            if (isArrItem() && value != null) {
-                if (index < Array.getLength(value))
-                    return Array.get(value, index);
-                else
-                    return null;
-            } else
-                return value;
-        } catch (Exception e1) {
-            throw new Error("Fail in FieldEditor.getValue()");
-        }
-    } */
-
     protected Class<?> getFieldType() {
         try {
             PropertyDescriptor pd = new PropertyDescriptor(getFieldName(), getObject().getClass());
@@ -192,8 +148,14 @@ public abstract class FieldEditor {
         }
     }
 
-    //public abstract VisibleElement createElement(StructuredEditorModel model);
+    protected Class<?> getMaskedFieldType() {
+        Class<?> fieldType = getFieldType();
+        return mask == null ? fieldType : mask.getValueClass(fieldType);
+    }
 
+    public StructuredEditorModel getModel() {
+        return model;
+    }
 
     protected abstract void updateElement();
 }

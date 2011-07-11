@@ -57,10 +57,7 @@ import java.awt.event.*;
  * choices[0]);
  * </pre>
  */
-public class ListDialog extends JDialog
-        implements ActionListener {
-    //private ListDialog dialog;
-    //private String value = "";
+public class ListDialog extends JDialog implements ActionListener {
     private JList list;
 
     public void setCmb(ComboBoxTextEditorElement cmb) {
@@ -71,38 +68,9 @@ public class ListDialog extends JDialog
     private ComboBoxTextEditorElement cmb;
 
 
-    /**
-     * Set up and show the dialog.  The first Component argument
-     * determines which frame the dialog depends on; it should be
-     * a component in the dialog's controlling frame. The second
-     * Component argument should be null if you want the dialog
-     * to come up with its left corner in the center of the screen;
-     * otherwise, it should be the component on top of which the
-     * dialog should appear.
-     */
-    /*public JList showDialog(Component frameComp,
-                                   Object[] possibleValues,
-                                   String initialValue,
-                                   String longValue,
-                                   int x, int y) {
-        Frame frame = JOptionPane.getFrameForComponent(frameComp);
-        dialog = new ListDialog(frame,
-                possibleValues,
-                initialValue,
-                longValue,
-                x, y);
-        dialog.setVisible(true);
-        return dialog.getList();
-    } */
     public JList getList() {
         return list;
     }
-
-    /* private void setValue(String newValue) {
-      value = newValue;
-      list.setSelectedValue(value, true);
-  }  */
-
 
     public ListDialog(JComponent frameComp,
                       Object[] data,
@@ -245,10 +213,5 @@ public class ListDialog extends JDialog
         }
         setVisible(false);
     }
-
-
-    /*public String getValue() {
-        return value;
-    } */
 
 }

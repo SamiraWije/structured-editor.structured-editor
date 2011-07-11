@@ -211,7 +211,7 @@ public class XMLViewer extends JComponent implements Scrollable {
     @Override
     public void paint(Graphics gr) {
         gr.setColor(Color.BLACK);
-        Font f = StructuredEditorUI.FONT;
+        Font f = UIManager.getFont("StructuredEditor.font");
         gr.setFont(f);
         this.gr = gr;
         FontMetrics fontMetrics = gr.getFontMetrics();

@@ -1,5 +1,7 @@
 package ru.ipo.structurededitor;
 
+import ru.ipo.structurededitor.actions.ActionsListComponent;
+import ru.ipo.structurededitor.actions.VisibleElementAction;
 import ru.ipo.structurededitor.model.DefaultDSLBean;
 import ru.ipo.structurededitor.view.StructuredEditorModel;
 import ru.ipo.structurededitor.view.StructuredEditorUI;
@@ -19,15 +21,24 @@ public class StructuredEditor extends JComponent implements Scrollable {
 
     static {
         UIManager.put("StructuredEditorUI", "ru.ipo.structurededitor.view.StructuredEditorUI");
-    }
+        UIManager.put("StructuredEditor.font", new Font(Font.MONOSPACED, Font.PLAIN, 14));
+        UIManager.put("StructuredEditor.horizontalMargin", 0);
+        UIManager.put("StructuredEditor.verticalMargin", 0);
 
-    public boolean isView() {
-        return view;
+        UIManager.put("ActionsListComponent.background", new Color(0xEEEEEE));
     }
 
     private boolean view = false;
 
+    private Object app;
+
     private StructuredEditorModel model;
+
+    private ActionsListComponent actionsListComponent;
+
+    public boolean isView() {
+        return view;
+    }
 
     public Object getApp() {
         return app;
@@ -36,10 +47,7 @@ public class StructuredEditor extends JComponent implements Scrollable {
     public void setApp(Object app) {
         this.app = app;
         model.setApp(app);
-
     }
-
-    private Object app;
 
     public StructuredEditor() {
         this(new StructuredEditorModel(new DefaultDSLBean()));
@@ -52,6 +60,8 @@ public class StructuredEditor extends JComponent implements Scrollable {
 
         registerCaretMovementKeyStrokes();
         enableEvents(AWTEvent.MOUSE_EVENT_MASK);
+
+        createActionsListComponent();
     }
 
     public StructuredEditor(StructuredEditorModel model, boolean view) {
@@ -101,8 +111,7 @@ public class StructuredEditor extends JComponent implements Scrollable {
         return false;
     }
 
-    public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation,
-                                          int direction) {
+    public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
         switch (orientation) {
             case SwingConstants.VERTICAL:
                 return ((StructuredEditorUI) ui).getCharHeight();
@@ -119,12 +128,20 @@ public class StructuredEditor extends JComponent implements Scrollable {
     @Override
     protected void processComponentKeyEvent(KeyEvent e) {
         if (!view) {
+            //let
             VisibleElement el = model.getFocusedElement();
             while (el != null) {
                 el.fireKeyEvent(e);
                 if (e.isConsumed())
                     return;
                 el = el.getParent();
+            }
+
+            //fire action
+            if (!e.isConsumed()) {
+                VisibleElementAction action = actionsListComponent.getActionByKeyEvent(e);
+                if (action != null)
+                    action.run(model);
             }
         }
     }
@@ -202,4 +219,11 @@ public class StructuredEditor extends JComponent implements Scrollable {
         setUI(UIManager.getUI(this));
     }
 
+    private void createActionsListComponent() {
+        actionsListComponent = new ActionsListComponent();
+    }
+
+    public ActionsListComponent getActionsListComponent() {
+        return actionsListComponent;
+    }
 }
