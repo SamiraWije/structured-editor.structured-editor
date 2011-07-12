@@ -31,7 +31,7 @@ public class ActionsCellRenderer extends DefaultListCellRenderer {
 
         value = DataShowUtils.htmlLayout(action.getActionText(), strokeDescription);
 
-        JLabel renderer = (JLabel)super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+        JLabel renderer = (JLabel)super.getListCellRendererComponent(list, value, index, index == ((ActionsListComponent)list).getHighlightIndex(), false);
         renderer.setIcon(action.getIcon());
 
         return renderer;

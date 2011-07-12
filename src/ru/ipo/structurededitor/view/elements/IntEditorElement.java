@@ -29,7 +29,7 @@ public class IntEditorElement extends TextEditorElement {
 
     @Override
     public void setUnfocusedElementProps() {
-        settextProperties(new TextProperties(Font.PLAIN, INT_USER_TEXT_COLOR));
+        setTextProperties(new TextProperties(Font.PLAIN, INT_USER_TEXT_COLOR));
     }
 
     @Override

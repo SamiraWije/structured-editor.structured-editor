@@ -235,12 +235,25 @@ public abstract class VisibleElement {
     }
 
     //------------------ Actions List -----------------
+    public void addActionToTheBeginning(VisibleElementAction action) {
+        if (!actions.contains(action)) {
+            actions.add(0, action);
+            model.fireVisibleElementActionsChangedEvent(this);
+        }
+    }
+
     public void addAction(VisibleElementAction action) {
-        actions.add(action);
+        if (!actions.contains(action)) {
+            actions.add(action);
+            model.fireVisibleElementActionsChangedEvent(this);
+        }
     }
 
     public void removeAction(VisibleElementAction action) {
-        actions.remove(action);
+        if (actions.contains(action)) {
+            actions.remove(action);
+            model.fireVisibleElementActionsChangedEvent(this);
+        }
     }
 
     public Collection<? extends VisibleElementAction> getActions() {

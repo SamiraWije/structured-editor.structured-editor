@@ -26,6 +26,9 @@ public class StructuredEditor extends JComponent implements Scrollable {
         UIManager.put("StructuredEditor.verticalMargin", 0);
 
         UIManager.put("ActionsListComponent.background", new Color(0xEEEEEE));
+
+        UIManager.put("AutoCompleteTextElement.unknownShortcut", new Color(0xDD3300));
+        UIManager.put("AutoCompleteTextElement.knownShortcut", new Color(0x33DD00));
     }
 
     private boolean view = false;
@@ -220,7 +223,7 @@ public class StructuredEditor extends JComponent implements Scrollable {
     }
 
     private void createActionsListComponent() {
-        actionsListComponent = new ActionsListComponent();
+        actionsListComponent = new ActionsListComponent(this);
     }
 
     public ActionsListComponent getActionsListComponent() {

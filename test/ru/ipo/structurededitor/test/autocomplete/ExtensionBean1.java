@@ -1,9 +1,6 @@
 package ru.ipo.structurededitor.test.autocomplete;
 
-import ru.ipo.structurededitor.model.Cell;
-import ru.ipo.structurededitor.model.ConstantCell;
-import ru.ipo.structurededitor.model.FieldCell;
-import ru.ipo.structurededitor.model.Horiz;
+import ru.ipo.structurededitor.model.*;
 
 /**
  * Created by IntelliJ IDEA.
@@ -11,6 +8,7 @@ import ru.ipo.structurededitor.model.Horiz;
  * Date: 09.07.11
  * Time: 2:49
  */
+@DSLBeanParams(shortcut = "ext1", description = "Первое прямое расширение AbstractBean")
 public class ExtensionBean1 extends AbstractBean {
 
     private int x;

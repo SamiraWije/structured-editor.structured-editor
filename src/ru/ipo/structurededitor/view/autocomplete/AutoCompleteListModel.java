@@ -11,9 +11,7 @@ import java.util.*;
  */
 public class AutoCompleteListModel extends AbstractListModel {
 
-    public static final Object EMPTY_LIST_OBJECT = new Object();
-
-    private final Collection<AutoCompleteElement> elementsToSelect;
+    private final List<AutoCompleteElement> elementsToSelect;
 
     private final List<AutoCompleteElement> filteredElements = new ArrayList<AutoCompleteElement>();
 
@@ -27,11 +25,11 @@ public class AutoCompleteListModel extends AbstractListModel {
         this(Arrays.asList(elementsToSelect));
     }
 
-    public AutoCompleteListModel(Collection<AutoCompleteElement> elementsToSelect) {
+    public AutoCompleteListModel(List<AutoCompleteElement> elementsToSelect) {
         //wrap beans
         this.elementsToSelect = elementsToSelect;
 
-        filterBeans();
+        filterElements();
     }
 
     private void updateMaxWidths() {
@@ -48,7 +46,9 @@ public class AutoCompleteListModel extends AbstractListModel {
         }
     }
 
-    private void filterBeans() {
+    private void filterElements() {
+        int oldSize = getSize();
+
         filteredElements.clear();
 
         for (AutoCompleteElement element : elementsToSelect)
@@ -56,27 +56,36 @@ public class AutoCompleteListModel extends AbstractListModel {
                 filteredElements.add(element);
 
         updateMaxWidths();
+
+        int newSize = getSize();
+
+        fireIntervalRemoved(this, 0, oldSize - 1);
+        fireIntervalAdded(this, 0, newSize - 1);
     }
 
     @Override
     public int getSize() {
         int size = filteredElements.size();
         if (size == 0)
-            size = 1;
+            size = 1 + elementsToSelect.size();
         return size;
     }
 
     @Override
     public Object getElementAt(int index) {
-        if (filteredElements.size() == 0)
-            return EMPTY_LIST_OBJECT;
+        if (filteredElements.size() == 0) {
+            if (index == 0)
+                return null;
+            else
+                return elementsToSelect.get(index - 1);
+        }
 
         return filteredElements.get(index);
     }
 
     public void setSearchString(String searchString) {
         this.searchString = searchString;
-        filterBeans();
+        filterElements();
     }
 
     public String getSearchString() {
@@ -87,8 +96,10 @@ public class AutoCompleteListModel extends AbstractListModel {
         if (searchString == null)
             return EMPTY_MATCH;
 
-        int si = element.getShortcut().indexOf(searchString);
-        int di = element.getDescription().indexOf(searchString);
+        String lowercaseSearch = searchString.toLowerCase();
+
+        int si = element.getShortcut().toLowerCase().indexOf(lowercaseSearch);
+        int di = element.getDescription().toLowerCase().indexOf(lowercaseSearch);
 
         if (si >= 0 || di >= 0)
             return new MatchResult(si, di);
@@ -102,6 +113,17 @@ public class AutoCompleteListModel extends AbstractListModel {
 
     public int getMaxDescriptionWidth() {
         return maxDescriptionWidth;
+    }
+
+    public AutoCompleteElement getElementByShortcut(String shortcut) {
+        //may be implemented by HashMap if this is slow
+
+        for (AutoCompleteElement element : elementsToSelect) {
+            if (element.getShortcut().equals(shortcut))
+                return element;
+        }
+
+        return null;
     }
 
     public class MatchResult {

@@ -12,6 +12,9 @@ import java.awt.event.KeyEvent;
  */
 public class DataShowUtils {
 
+    private static final String RIGHT_TEXT_COLOR = "#000088";
+    private static final String RIGHT_TEXT_COLOR_ERR = "#FF2200";
+
     public static String keyStroke2String(KeyStroke key) {
         if (key == null) return "";
         StringBuilder s = new StringBuilder(50);
@@ -371,14 +374,22 @@ public class DataShowUtils {
 //                .append("</span>")
 //                .append("</html>");
 
-        sb
-                .append("<html>")
-                .append("<table width='100%'><tr><td>")
-                .append(leftText)
-                .append("</td><td align='right' style='color:#000088; font-weight:100'>")
-                .append(rightText)
-                .append("</td></tr></table>")
-                .append("</html>");
+        if (leftText == null || leftText.length() == 0)
+            sb
+                    .append("<html>")
+                    .append("<span style='color:" + RIGHT_TEXT_COLOR_ERR + "; font-weight:100'>")
+                    .append(rightText)
+                    .append("</span>")
+                    .append("</html>");
+        else
+            sb
+                    .append("<html>")
+                    .append("<table width='100%'><tr><td>")
+                    .append(leftText)
+                    .append("</td><td align='right' style='color:" + RIGHT_TEXT_COLOR + "; font-weight:100'>")
+                    .append(rightText)
+                    .append("</td></tr></table>")
+                    .append("</html>");
 
 //        sb
 //                .append("<html>")

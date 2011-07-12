@@ -30,7 +30,6 @@ public abstract class VisibleElementAction {
         this.actionText = actionText;
         this.icon = icon;
         this.keyStroke = keyStroke;
-
     }
 
     private static Icon getIcon(String name) {

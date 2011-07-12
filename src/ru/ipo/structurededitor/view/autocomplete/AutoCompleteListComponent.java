@@ -1,8 +1,14 @@
 package ru.ipo.structurededitor.view.autocomplete;
 
+import ru.ipo.structurededitor.view.events.AutoCompleteElementSelectedEvent;
+import ru.ipo.structurededitor.view.events.AutoCompleteElementSelectedListener;
+
 import javax.swing.*;
+import javax.swing.event.ListSelectionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.Arrays;
-import java.util.Collection;
+import java.util.List;
 
 /**
  * Created by IntelliJ IDEA.
@@ -12,28 +18,40 @@ import java.util.Collection;
  */
 public class AutoCompleteListComponent extends JScrollPane {
 
-    private static final ListCellRenderer cellRenderer = new AutoCompleteCellRenderer();
-//    private static final int MAX_HEIGHT = 300;
+    public static final int VISIBLE_ELEMENTS_COUNT = 10;
+
+    private final ListCellRenderer cellRenderer = new AutoCompleteCellRenderer(this);
 
     public static JComponent getComponent(AutoCompleteElement... elementsToSelect) {
         return getComponent(Arrays.asList(elementsToSelect), null);
     }
 
-    public static AutoCompleteListComponent getComponent(Collection<AutoCompleteElement> elementsToSelect, String searchString) {
+    public static AutoCompleteListComponent getComponent(List<AutoCompleteElement> elementsToSelect, String searchString) {
         AutoCompleteListComponent component = new AutoCompleteListComponent(elementsToSelect);
         component.setSearchString(searchString);
         return component;
     }
 
-    private AutoCompleteListComponent(Collection<AutoCompleteElement> elementsToSelect) {
-        super(createList(elementsToSelect));
+    private AutoCompleteListComponent(List<AutoCompleteElement> elementsToSelect) {
+        super();
+        setViewportView(createList(elementsToSelect));
         setFocusable(false);
     }
 
-    private static JComponent createList(Collection<AutoCompleteElement> elementsToSelect) {
-        JList list = new JList(new AutoCompleteListModel(elementsToSelect));
+    private JComponent createList(List<AutoCompleteElement> elementsToSelect) {
+        final JList list = new JList(new AutoCompleteListModel(elementsToSelect));
         list.setCellRenderer(cellRenderer);
         list.setFocusable(false);
+        list.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() >= 2) {
+                    Object selectedValue = list.getSelectedValue();
+                    if (selectedValue != null)
+                        fireAutoCompleteElementSelectedListener((AutoCompleteElement) selectedValue);
+                }
+            }
+        });
         return list;
     }
 
@@ -41,7 +59,7 @@ public class AutoCompleteListComponent extends JScrollPane {
         return (JList) getViewport().getView();
     }
 
-    private AutoCompleteListModel getModel() {
+    public AutoCompleteListModel getModel() {
         return (AutoCompleteListModel) getList().getModel();
     }
 
@@ -49,9 +67,16 @@ public class AutoCompleteListComponent extends JScrollPane {
         return (AutoCompleteElement) getList().getSelectedValue();
     }
 
+    public AutoCompleteElement getElementByShortcut(String shortcut) {
+        return getModel().getElementByShortcut(shortcut);
+    }
+
+    //TODO don't select first element if it is empty
     public void moveSelection(int amount, boolean allowCycle) {
         JList list = getList();
+
         int selectedIndex = list.getSelectedIndex();
+        int total = list.getModel().getSize();
 
         if (selectedIndex < 0)
             if (amount > 0)
@@ -60,8 +85,6 @@ public class AutoCompleteListComponent extends JScrollPane {
                 selectedIndex = 0;
 
         selectedIndex += amount;
-
-        int total = list.getModel().getSize();
 
         if (total == 0)
             return;
@@ -89,10 +112,35 @@ public class AutoCompleteListComponent extends JScrollPane {
         JList list = getList();
         int modelSize = model.getSize();
         list.setPrototypeCellValue(model.getTheLongestElement());
-        list.setVisibleRowCount(modelSize > 10 ? 10 : modelSize);
+        list.setVisibleRowCount(modelSize > VISIBLE_ELEMENTS_COUNT ? VISIBLE_ELEMENTS_COUNT : modelSize);
     }
 
     public String getSearchString() {
         return getModel().getSearchString();
+    }
+
+    public void addListSelectionListener(ListSelectionListener listener) {
+        getList().addListSelectionListener(listener);
+    }
+
+    public void removeListSelectionListener(ListSelectionListener listener) {
+        getList().removeListSelectionListener(listener);
+    }
+
+    public void addAutoCompleteElementSelectedListener(AutoCompleteElementSelectedListener listener) {
+        listenerList.add(AutoCompleteElementSelectedListener.class, listener);
+    }
+
+    public void removeAutoCompleteElementSelectedListener(AutoCompleteElementSelectedListener listener) {
+        listenerList.remove(AutoCompleteElementSelectedListener.class, listener);
+    }
+
+    public void fireAutoCompleteElementSelectedListener(AutoCompleteElement element) {
+        AutoCompleteElementSelectedEvent e = new AutoCompleteElementSelectedEvent(this, element);
+
+        Object[] listeners = listenerList.getListenerList();
+        for (int i = listeners.length - 2; i >= 0; i -= 2)
+            if (listeners[i] == AutoCompleteElementSelectedListener.class)
+                ((AutoCompleteElementSelectedListener)listeners[i + 1]).elementChanged(e);
     }
 }

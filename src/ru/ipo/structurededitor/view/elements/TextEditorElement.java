@@ -52,7 +52,7 @@ public class TextEditorElement extends TextElement {
     }
 
     public void setUnfocusedElementProps() {
-        settextProperties(new TextProperties(Font.PLAIN, USER_TEXT_COLOR));
+        setTextProperties(new TextProperties(Font.PLAIN, USER_TEXT_COLOR));
     }
 
     @Override
@@ -108,7 +108,7 @@ public class TextEditorElement extends TextElement {
             }
         }
 
-        settextProperties(new TextProperties(Font.PLAIN, USER_EDIT_TEXT_COLOR));
+        setTextProperties(new TextProperties(Font.PLAIN, USER_EDIT_TEXT_COLOR));
         super.drawElement(x0, y0, d);
 
         //draw caret
@@ -404,7 +404,10 @@ public class TextEditorElement extends TextElement {
             } else
                 return shift;
         } else if (newXPosition > len) {
-            if (yCaretPosition < getLines().size() - 1) {
+            if (len == 0) {
+                newXPosition = 0;
+                newYPosition = 0;
+            } else if (yCaretPosition < getLines().size() - 1) {
                 newXPosition = 0;
                 newYPosition++;
             } else {
@@ -511,5 +514,13 @@ public class TextEditorElement extends TextElement {
         this.xMarkPosition = xMarkPosition;
         this.yMarkPosition = yMarkPosition;
         repaint();
+    }
+
+    @Override
+    public void setText(String text) {
+        super.setText(text);
+        int length = text == null ? 0 : text.length();
+        if (singleLined && xCaretPosition > length)
+            setCaretPosition(length, 0);
     }
 }

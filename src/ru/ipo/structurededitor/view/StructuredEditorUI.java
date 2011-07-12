@@ -3,6 +3,7 @@ package ru.ipo.structurededitor.view;
 import ru.ipo.structurededitor.StructuredEditor;
 import ru.ipo.structurededitor.actions.ActionsListComponent;
 import ru.ipo.structurededitor.actions.VisibleElementAction;
+import ru.ipo.structurededitor.view.elements.TextEditorElement;
 import ru.ipo.structurededitor.view.elements.VisibleElement;
 import ru.ipo.structurededitor.view.events.*;
 
@@ -118,6 +119,14 @@ public class StructuredEditorUI extends ComponentUI {
                     }
                 });
 
+        editor.getModel().addVisibleElementActionsChangedListener(new VisibleElementActionsChangedListener() {
+            @Override
+            public void actionsChanged(VisibleElementActionsChangedEvent e) {
+                if (e.getElement() == editor.getModel().getFocusedElement())
+                    updateAvailableActions();
+            }
+        });
+
         editor.getModel().addPopupListener(new PopupListener() {
             public ListDialog showPopup(PopupEvent evt) {
                 int x = evt.getX();
@@ -206,10 +215,35 @@ public class StructuredEditorUI extends ComponentUI {
         actionsListComponent.clearActions();
         for (VisibleElementAction action : actions)
             actionsListComponent.addAction(action);
+
+        //TODO remove this
+        actionsListComponent.addAction(new VisibleElementAction("text 1 text text", "key.png", KeyStroke.getKeyStroke("1")) {
+            @Override public void run(StructuredEditorModel model) {System.out.println(1);}});
+        actionsListComponent.addAction(new VisibleElementAction("text 2 text text", "key.png", KeyStroke.getKeyStroke("1")) {
+            @Override public void run(StructuredEditorModel model) {System.out.println(2);}});
+        actionsListComponent.addAction(new VisibleElementAction("text 3 text text", "key.png", KeyStroke.getKeyStroke("1")) {
+            @Override public void run(StructuredEditorModel model) {System.out.println(3);}});
+        actionsListComponent.addAction(new VisibleElementAction("text 4 text text", "key.png", KeyStroke.getKeyStroke("1")) {
+            @Override public void run(StructuredEditorModel model) {System.out.println(4);}});
+        actionsListComponent.addAction(new VisibleElementAction("text 5 text text", "key.png", KeyStroke.getKeyStroke("1")) {
+            @Override public void run(StructuredEditorModel model) {System.out.println(5);}});
+        actionsListComponent.addAction(new VisibleElementAction("text 6 text text", "key.png", KeyStroke.getKeyStroke("1")) {
+            @Override public void run(StructuredEditorModel model) {System.out.println(6);}});
+        actionsListComponent.addAction(new VisibleElementAction("text 7 text text", "key.png", KeyStroke.getKeyStroke("1")) {
+            @Override public void run(StructuredEditorModel model) {System.out.println(7);}});
+        actionsListComponent.addAction(new VisibleElementAction("text 8 text text", "key.png", KeyStroke.getKeyStroke("1")) {
+            @Override public void run(StructuredEditorModel model) {System.out.println(8);}});
+        actionsListComponent.addAction(new VisibleElementAction("text 9 text text", "key.png", KeyStroke.getKeyStroke("1")) {
+            @Override public void run(StructuredEditorModel model) {System.out.println(9);}});
+        actionsListComponent.addAction(new VisibleElementAction("text 10 text text", "key.png", KeyStroke.getKeyStroke("1")) {
+            @Override public void run(StructuredEditorModel model) {System.out.println(10);}});
+        actionsListComponent.addAction(new VisibleElementAction("text 11 text text", "key.png", KeyStroke.getKeyStroke("1")) {
+            @Override public void run(StructuredEditorModel model) {System.out.println(11);}});
     }
 
     @Override
     public void uninstallUI(JComponent c) {
+        //TODO uninstall everything
         caretBlinkTimer.removeActionListener(caretBlinkListener);
     }
 
@@ -226,7 +260,8 @@ public class StructuredEditorUI extends ComponentUI {
         //get focused rectangle
         VisibleElement focusedElement = se.getModel().getFocusedElement();
         Rectangle focusedRectangle = null;
-        if (focusedElement != null && !se.isView() /*&& editor.isFocusOwner()*/) {
+        //TODO remove a hack about highlighting only text editor elements
+        if (focusedElement != null && !se.isView() && focusedElement instanceof TextEditorElement /*&& editor.isFocusOwner()*/) {
             TextPosition fpos = focusedElement.getAbsolutePosition();
 
             focusedRectangle = new Rectangle(d.xToPixels(fpos.getColumn()), d

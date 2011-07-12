@@ -1,18 +1,19 @@
 package ru.ipo.structurededitor.view.elements;
 
+import ru.ipo.structurededitor.actions.VisibleElementAction;
 import ru.ipo.structurededitor.view.StructuredEditorModel;
 import ru.ipo.structurededitor.view.autocomplete.AutoCompleteElement;
 import ru.ipo.structurededitor.view.autocomplete.AutoCompleteListComponent;
-import ru.ipo.structurededitor.view.autocomplete.AutoCompletionSelectedEvent;
-import ru.ipo.structurededitor.view.autocomplete.AutoCompletionSelectedListener;
+import ru.ipo.structurededitor.view.events.AutoCompleteElementSelectedEvent;
+import ru.ipo.structurededitor.view.events.AutoCompleteElementSelectedListener;
 
 import javax.swing.*;
-import javax.swing.event.EventListenerList;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.*;
 
 /**
  * Created by IntelliJ IDEA.
@@ -23,72 +24,173 @@ import java.util.Collection;
 public class AutoCompleteTextElement extends TextEditorElement implements PropertyChangeListener {
 
     private final AutoCompleteListComponent persistentPopupComponent;
-    protected final EventListenerList listenerList = new EventListenerList();
+    private Object selectedValue = null;
 
-    private static final KeyStroke[] showCompletion = {
-            KeyStroke.getKeyStroke("control SPACE")
+    private static final KeyStroke KS_UP = KeyStroke.getKeyStroke("UP");
+    private static final KeyStroke KS_DOWN = KeyStroke.getKeyStroke("DOWN");
+    private static final KeyStroke KS_PG_UP = KeyStroke.getKeyStroke("PAGE_UP");
+    private static final KeyStroke KS_PG_DOWN = KeyStroke.getKeyStroke("PAGE_DOWN");
+    private static final KeyStroke KS_CLOSE = KeyStroke.getKeyStroke("ESCAPE");
+
+    private final VisibleElementAction selectValueAction = new VisibleElementAction("Выбрать", "key.png", KeyStroke.getKeyStroke("ENTER")) {
+        @Override
+        public void run(StructuredEditorModel model) {
+            Object value = getValueThatWillBeSelected();
+            setSelectedValue(value);
+            getModel().hidePopup();
+        }
     };
 
-    private static final KeyStroke[] selectionStrokes = {
-            KeyStroke.getKeyStroke("ENTER"),
-            KeyStroke.getKeyStroke("TAB"),
-    };
-
-    private static final KeyStroke[] hideSelectionStrokes = {
-            KeyStroke.getKeyStroke("ESCAPE")
+    private final VisibleElementAction showPopupAction = new VisibleElementAction("Выбрать вариант", "properties.png", KeyStroke.getKeyStroke("control SPACE")) { //TODO get text from data
+        @Override
+        public void run(StructuredEditorModel model) {
+            model.showPopup(persistentPopupComponent);
+            updateShowPopupAction();
+        }
     };
 
     public AutoCompleteTextElement(StructuredEditorModel model, AutoCompleteElement... elements) {
         this(model, Arrays.asList(elements));
     }
 
-    public AutoCompleteTextElement(StructuredEditorModel model, Collection<AutoCompleteElement> elements) {
+    public AutoCompleteTextElement(StructuredEditorModel model, List<AutoCompleteElement> elements) {
         super(model, null, true);
+
         persistentPopupComponent = AutoCompleteListComponent.getComponent(elements, null);
+        persistentPopupComponent.addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                if (!e.getValueIsAdjusting()) {
+                    updateSelectActionVisibility();
+                }
+            }
+        });
+
+        persistentPopupComponent.addAutoCompleteElementSelectedListener(new AutoCompleteElementSelectedListener() {
+            @Override
+            public void elementChanged(AutoCompleteElementSelectedEvent e) {
+                AutoCompleteElement element = e.getElement();
+                if (element != null)
+                    selectValueAction.run(getModel());
+            }
+        });
 
         addPropertyChangeListener("focused", this);
-    }
+        addPropertyChangeListener("text", this);
 
-    /*@Override
-    public void processKeyEvent(KeyEvent e) {
-        if (isInKeyStrokesList(e, hideSelectionStrokes))
-            setPopupComponent(null);
-        else if (isInKeyStrokesList(e, showCompletion))
-            setPopupComponent(persistentPopupComponent);
-        else if (isInKeyStrokesList(e, selectionStrokes)) {
-            fireAutoCompletionSelectedEvent(persistentPopupComponent.getSelectedElement());
-            setPopupComponent(null);
-        }
-    }*/
-
-    private boolean isInKeyStrokesList(KeyEvent e, KeyStroke[] keyStrokesList) {
-        for (KeyStroke keyStroke : keyStrokesList) {
-            if (KeyStroke.getKeyStrokeForEvent(e).equals(keyStroke))
-                return true;
-        }
-        return false;
-    }
-
-    public void add(AutoCompletionSelectedListener listener) {
-        listenerList.add(AutoCompletionSelectedListener.class, listener);
-    }
-
-    public void remove(AutoCompletionSelectedListener listener) {
-        listenerList.remove(AutoCompletionSelectedListener.class, listener);
-    }
-
-    protected void fireAutoCompletionSelectedEvent(AutoCompleteElement selectedElement) {
-        Object[] listeners = listenerList.getListenerList();
-        for (int i = listeners.length - 2; i >= 0; i -= 2)
-            if (listeners[i] == AutoCompletionSelectedListener.class)
-                ((AutoCompletionSelectedListener)listeners[i+1]).completionSelected(
-                        new AutoCompletionSelectedEvent(this, selectedElement)
-                );
+        updateShowPopupAction();
+        updateSelectActionVisibility();
     }
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-//        if (evt.getPropertyName().equals("focused"))
-//            setPopupComponent(null);
+        String propName = evt.getPropertyName();
+        if (propName.equals("focused")) {
+            setText(null);
+            updateShowPopupAction();
+        } else if (propName.equals("text")) {
+            String text = getText();
+
+            //show completion variants if user is typing
+            if (text != null && !persistentPopupComponent.isShowing())
+                showPopupAction.run(getModel());
+
+            updateSelectActionVisibility();
+
+            int oldModelSize = persistentPopupComponent.getModel().getSize();
+            persistentPopupComponent.setSearchString(text);
+            int newModelSize = persistentPopupComponent.getModel().getSize();
+            if (oldModelSize != newModelSize && persistentPopupComponent.isShowing())
+                getModel().showPopup(persistentPopupComponent);
+        }
+    }
+
+    /*private void chooseTextColor(boolean correctElement) {
+        String uiManagerColor;
+        if (correctElement)
+            uiManagerColor = "AutoCompleteTextElement.knownShortcut";
+        else
+            uiManagerColor = "AutoCompleteTextElement.unknownShortcut";
+
+        setTextProperties(new TextProperties(Font.PLAIN, UIManager.getColor(uiManagerColor)));
+    }*/
+
+    @Override
+    public void processKeyEvent(KeyEvent e) {
+        KeyStroke ks = KeyStroke.getKeyStrokeForEvent(e);
+
+        //several key events should be directed to popup component if it is shown
+        if (persistentPopupComponent.isShowing()) {
+            if (ks.equals(KS_UP)) {
+                persistentPopupComponent.moveSelection(-1, true);
+                e.consume();
+            } else if (ks.equals(KS_DOWN)) {
+                persistentPopupComponent.moveSelection(+1, true);
+                e.consume();
+            } else if (ks.equals(KS_PG_UP)) {
+                persistentPopupComponent.moveSelection(-AutoCompleteListComponent.VISIBLE_ELEMENTS_COUNT, false);
+                e.consume();
+            } else if (ks.equals(KS_PG_DOWN)) {
+                persistentPopupComponent.moveSelection(+AutoCompleteListComponent.VISIBLE_ELEMENTS_COUNT, false);
+                e.consume();
+            } else if (ks.equals(KS_CLOSE)) {
+                getModel().hidePopup();
+                updateSelectActionVisibility();
+                updateShowPopupAction();
+                e.consume();
+            }
+        }
+
+        if (!e.isConsumed())
+            super.processKeyEvent(e);
+    }
+
+    private Object getValueThatWillBeSelected() {
+        Object result = null;
+
+        if (persistentPopupComponent.isShowing()) {
+            //if popup is visible then select value form popup
+            AutoCompleteElement selectedElement = persistentPopupComponent.getSelectedElement();
+            if (selectedElement != null)
+                result = selectedElement.getValue();
+        }
+
+        if (result != null)
+            return result;
+
+        //if no popup visible or nothing is selected, then try to select by entered text
+        String text = getText();
+        if (text == null)
+            return null;
+        AutoCompleteElement elementByShortcut = persistentPopupComponent.getElementByShortcut(text);
+        if (elementByShortcut != null)
+            return elementByShortcut.getValue();
+        else
+            return null;
+    }
+
+    private void updateSelectActionVisibility() {
+        Object value = getValueThatWillBeSelected();
+        if (value != null)
+            addActionToTheBeginning(selectValueAction);
+        else
+            removeAction(selectValueAction);
+    }
+
+    private void updateShowPopupAction() {
+        if (persistentPopupComponent.isShowing())
+            removeAction(showPopupAction);
+        else
+            addAction(showPopupAction);
+    }
+
+    public void setSelectedValue(Object selectedValue) {
+        Object oldValue = this.selectedValue;
+        this.selectedValue = selectedValue;
+        pcs.firePropertyChange("selectedValue", oldValue, selectedValue);
+    }
+
+    public Object getSelectedValue() {
+        return selectedValue;
     }
 }

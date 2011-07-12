@@ -34,12 +34,12 @@ public class BooleanEditorElement extends TextElement {
     @Override
     public void drawElement(int x0, int y0, Display d) {
         if (!isFocused()) {
-            settextProperties(new TextProperties(Font.PLAIN, BOOL_TEXT_COLOR));
+            setTextProperties(new TextProperties(Font.PLAIN, BOOL_TEXT_COLOR));
             super.drawElement(x0, y0, d);
             return;
         }
 
-        settextProperties(new TextProperties(Font.PLAIN, BOOL_EDIT_TEXT_COLOR));
+        setTextProperties(new TextProperties(Font.PLAIN, BOOL_EDIT_TEXT_COLOR));
         super.drawElement(x0, y0, d);
     }
 

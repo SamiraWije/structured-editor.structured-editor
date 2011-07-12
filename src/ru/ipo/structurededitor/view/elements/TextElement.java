@@ -85,7 +85,7 @@ public class TextElement extends VisibleElement {
         }
     }
 
-    public void settextProperties(TextProperties tp) {
+    public void setTextProperties(TextProperties tp) {
         textProperties = tp;
     }
 

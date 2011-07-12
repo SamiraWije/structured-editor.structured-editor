@@ -29,7 +29,7 @@ public class DoubleEditorElement extends TextEditorElement {
 
     @Override
     public void setUnfocusedElementProps() {
-        settextProperties(new TextProperties(Font.PLAIN, DOUBLE_USER_TEXT_COLOR));
+        setTextProperties(new TextProperties(Font.PLAIN, DOUBLE_USER_TEXT_COLOR));
     }
 
     @Override

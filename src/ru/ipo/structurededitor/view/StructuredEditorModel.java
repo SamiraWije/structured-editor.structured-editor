@@ -334,4 +334,25 @@ public class StructuredEditorModel {
     public void hidePopup() {
         firePopupComponentChangedEvent(null);
     }
+
+    //visible actions changed
+
+    public void fireVisibleElementActionsChangedEvent(VisibleElement element) {
+        VisibleElementActionsChangedEvent event = new VisibleElementActionsChangedEvent(this, element);
+
+        Object[] listeners = listenerList.getListenerList();
+        for (int i = listeners.length - 2; i >= 0; i -= 2) {
+            if (listeners[i] == VisibleElementActionsChangedListener.class) {
+                ((VisibleElementActionsChangedListener) listeners[i + 1]).actionsChanged(event);
+            }
+        }
+    }
+
+    public void addVisibleElementActionsChangedListener(VisibleElementActionsChangedListener listener) {
+        listenerList.add(VisibleElementActionsChangedListener.class, listener);
+    }
+
+    public void removeVisibleElementActionsChangedListener(VisibleElementActionsChangedListener listener) {
+        listenerList.remove(VisibleElementActionsChangedListener.class, listener);
+    }
 }
