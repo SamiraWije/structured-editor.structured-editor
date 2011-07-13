@@ -126,6 +126,10 @@ public class AutoCompleteListModel extends AbstractListModel {
         return null;
     }
 
+    public int getFilteredElementsCount() {
+        return filteredElements.size();
+    }
+
     public class MatchResult {
 
         private int shortcutMatchIndex;
@@ -152,7 +156,14 @@ public class AutoCompleteListModel extends AbstractListModel {
     public AutoCompleteElement getTheLongestElement() {
         int max = 0;
         AutoCompleteElement longestElement = null;
-        for (AutoCompleteElement element : filteredElements) {
+
+        List<AutoCompleteElement> searchElements;
+        if (filteredElements.size() == 0)
+            searchElements = elementsToSelect;
+        else
+            searchElements = filteredElements;
+
+        for (AutoCompleteElement element : searchElements) {
             int len = element.getShortcut().length() + element.getDescription().length();
             if (len > max) {
                 max = len;

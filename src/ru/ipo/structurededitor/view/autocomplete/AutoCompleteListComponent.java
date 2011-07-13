@@ -35,6 +35,7 @@ public class AutoCompleteListComponent extends JScrollPane {
     private AutoCompleteListComponent(List<AutoCompleteElement> elementsToSelect) {
         super();
         setViewportView(createList(elementsToSelect));
+        setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         setFocusable(false);
     }
 
@@ -112,11 +113,16 @@ public class AutoCompleteListComponent extends JScrollPane {
         JList list = getList();
         int modelSize = model.getSize();
         list.setPrototypeCellValue(model.getTheLongestElement());
+        list.setFixedCellWidth(-1);
         list.setVisibleRowCount(modelSize > VISIBLE_ELEMENTS_COUNT ? VISIBLE_ELEMENTS_COUNT : modelSize);
     }
 
     public String getSearchString() {
         return getModel().getSearchString();
+    }
+
+    public int getFilteredElementsCount() {
+        return getModel().getFilteredElementsCount();
     }
 
     public void addListSelectionListener(ListSelectionListener listener) {
@@ -142,5 +148,9 @@ public class AutoCompleteListComponent extends JScrollPane {
         for (int i = listeners.length - 2; i >= 0; i -= 2)
             if (listeners[i] == AutoCompleteElementSelectedListener.class)
                 ((AutoCompleteElementSelectedListener)listeners[i + 1]).elementChanged(e);
+    }
+
+    public AutoCompleteElement getElementAt(int index) {
+        return (AutoCompleteElement) getModel().getElementAt(index);
     }
 }

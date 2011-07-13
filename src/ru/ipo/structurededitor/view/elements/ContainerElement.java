@@ -93,6 +93,10 @@ public class ContainerElement extends VisibleElement {
         getModel().setFocusedElementAndCaret(subElement);
     }
 
+    public VisibleElement getSubElement() {
+        return subElement;
+    }
+
     @Override
     protected void processKeyEvent(KeyEvent e) {
         super.processKeyEvent(e);    //To change body of overridden methods use File | Settings | File Templates.

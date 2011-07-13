@@ -10,10 +10,12 @@ import ru.ipo.structurededitor.view.events.AutoCompleteElementSelectedListener;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.*;
+import java.util.List;
 
 /**
  * Created by IntelliJ IDEA.
@@ -37,7 +39,11 @@ public class AutoCompleteTextElement extends TextEditorElement implements Proper
         public void run(StructuredEditorModel model) {
             Object value = getValueThatWillBeSelected();
             setSelectedValue(value);
+
             getModel().hidePopup();
+
+            updateShowPopupAction();
+            updateSelectActionVisibility();
         }
     };
 
@@ -46,6 +52,7 @@ public class AutoCompleteTextElement extends TextEditorElement implements Proper
         public void run(StructuredEditorModel model) {
             model.showPopup(persistentPopupComponent);
             updateShowPopupAction();
+            updateSelectActionVisibility();
         }
     };
 
@@ -93,16 +100,24 @@ public class AutoCompleteTextElement extends TextEditorElement implements Proper
 
             //show completion variants if user is typing
             if (text != null && !persistentPopupComponent.isShowing())
-                showPopupAction.run(getModel());
+                popup();
+
+            //get old list size
+            Dimension oldPreferredSize = persistentPopupComponent.getPreferredSize();
+
+            persistentPopupComponent.setSearchString(text);
+
+            //reshow popup if size changed
+            Dimension newPreferredSize = persistentPopupComponent.getPreferredSize();
+            if (persistentPopupComponent.isShowing() && !oldPreferredSize.equals(newPreferredSize))
+                getModel().showPopup(persistentPopupComponent);
 
             updateSelectActionVisibility();
-
-            int oldModelSize = persistentPopupComponent.getModel().getSize();
-            persistentPopupComponent.setSearchString(text);
-            int newModelSize = persistentPopupComponent.getModel().getSize();
-            if (oldModelSize != newModelSize && persistentPopupComponent.isShowing())
-                getModel().showPopup(persistentPopupComponent);
         }
+    }
+
+    public void popup() {
+        showPopupAction.run(getModel());
     }
 
     /*private void chooseTextColor(boolean correctElement) {
@@ -153,6 +168,11 @@ public class AutoCompleteTextElement extends TextEditorElement implements Proper
             AutoCompleteElement selectedElement = persistentPopupComponent.getSelectedElement();
             if (selectedElement != null)
                 result = selectedElement.getValue();
+            if (result == null && persistentPopupComponent.getFilteredElementsCount() == 1) {
+                AutoCompleteElement theOnlyElement = persistentPopupComponent.getElementAt(0);
+                if (theOnlyElement != null)
+                    result = theOnlyElement.getValue();
+            }
         }
 
         if (result != null)

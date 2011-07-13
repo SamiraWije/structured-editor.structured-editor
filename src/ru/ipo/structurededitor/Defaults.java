@@ -66,7 +66,7 @@ public class Defaults {
             public Class<? extends FieldEditor> substituteEditor(Class<? extends DSLBean> beanClass,
                                                                  String propertyName, FieldMask mask, Class valueType) {
                 if (valueType.isEnum()) {
-                    return EnumEditor.class;
+                    return EnumEditorV2.class;
                 }
                 return null;
             }

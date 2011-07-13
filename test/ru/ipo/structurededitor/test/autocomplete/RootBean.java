@@ -13,6 +13,7 @@ public class RootBean implements DSLBean {
     private String stringValue;
     private int intValue;
     private AbstractBean abstractValue;
+    private EnumExample enumExample;
 
     public String getStringValue() {
         return stringValue;
@@ -38,12 +39,21 @@ public class RootBean implements DSLBean {
         this.abstractValue = abstractValue;
     }
 
+    public EnumExample getEnumExample() {
+        return enumExample;
+    }
+
+    public void setEnumExample(EnumExample enumExample) {
+        this.enumExample = enumExample;
+    }
+
     @Override
     public Cell getLayout() {
         return new Vert(
                 new Horiz(new ConstantCell("String ="), new FieldCell("stringValue")),
                 new Horiz(new ConstantCell("Int ="), new FieldCell("intValue")),
-                new Horiz(new ConstantCell("Abstract ="), new FieldCell("abstractValue"))
+                new Horiz(new ConstantCell("Abstract ="), new FieldCell("abstractValue")),
+                new Horiz(new ConstantCell("EnumEx ="), new FieldCell("enumExample"))
         );
     }
 }

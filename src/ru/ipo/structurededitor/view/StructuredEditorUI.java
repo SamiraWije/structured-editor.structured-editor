@@ -217,28 +217,28 @@ public class StructuredEditorUI extends ComponentUI {
             actionsListComponent.addAction(action);
 
         //TODO remove this
-        actionsListComponent.addAction(new VisibleElementAction("text 1 text text", "key.png", KeyStroke.getKeyStroke("1")) {
-            @Override public void run(StructuredEditorModel model) {System.out.println(1);}});
-        actionsListComponent.addAction(new VisibleElementAction("text 2 text text", "key.png", KeyStroke.getKeyStroke("1")) {
-            @Override public void run(StructuredEditorModel model) {System.out.println(2);}});
-        actionsListComponent.addAction(new VisibleElementAction("text 3 text text", "key.png", KeyStroke.getKeyStroke("1")) {
-            @Override public void run(StructuredEditorModel model) {System.out.println(3);}});
-        actionsListComponent.addAction(new VisibleElementAction("text 4 text text", "key.png", KeyStroke.getKeyStroke("1")) {
-            @Override public void run(StructuredEditorModel model) {System.out.println(4);}});
-        actionsListComponent.addAction(new VisibleElementAction("text 5 text text", "key.png", KeyStroke.getKeyStroke("1")) {
-            @Override public void run(StructuredEditorModel model) {System.out.println(5);}});
-        actionsListComponent.addAction(new VisibleElementAction("text 6 text text", "key.png", KeyStroke.getKeyStroke("1")) {
-            @Override public void run(StructuredEditorModel model) {System.out.println(6);}});
-        actionsListComponent.addAction(new VisibleElementAction("text 7 text text", "key.png", KeyStroke.getKeyStroke("1")) {
-            @Override public void run(StructuredEditorModel model) {System.out.println(7);}});
-        actionsListComponent.addAction(new VisibleElementAction("text 8 text text", "key.png", KeyStroke.getKeyStroke("1")) {
-            @Override public void run(StructuredEditorModel model) {System.out.println(8);}});
-        actionsListComponent.addAction(new VisibleElementAction("text 9 text text", "key.png", KeyStroke.getKeyStroke("1")) {
-            @Override public void run(StructuredEditorModel model) {System.out.println(9);}});
-        actionsListComponent.addAction(new VisibleElementAction("text 10 text text", "key.png", KeyStroke.getKeyStroke("1")) {
-            @Override public void run(StructuredEditorModel model) {System.out.println(10);}});
-        actionsListComponent.addAction(new VisibleElementAction("text 11 text text", "key.png", KeyStroke.getKeyStroke("1")) {
-            @Override public void run(StructuredEditorModel model) {System.out.println(11);}});
+//        actionsListComponent.addAction(new VisibleElementAction("text 1 text text", "key.png", KeyStroke.getKeyStroke("1")) {
+//            @Override public void run(StructuredEditorModel model) {System.out.println(1);}});
+//        actionsListComponent.addAction(new VisibleElementAction("text 2 text text", "key.png", KeyStroke.getKeyStroke("1")) {
+//            @Override public void run(StructuredEditorModel model) {System.out.println(2);}});
+//        actionsListComponent.addAction(new VisibleElementAction("text 3 text text", "key.png", KeyStroke.getKeyStroke("1")) {
+//            @Override public void run(StructuredEditorModel model) {System.out.println(3);}});
+//        actionsListComponent.addAction(new VisibleElementAction("text 4 text text", "key.png", KeyStroke.getKeyStroke("1")) {
+//            @Override public void run(StructuredEditorModel model) {System.out.println(4);}});
+//        actionsListComponent.addAction(new VisibleElementAction("text 5 text text", "key.png", KeyStroke.getKeyStroke("1")) {
+//            @Override public void run(StructuredEditorModel model) {System.out.println(5);}});
+//        actionsListComponent.addAction(new VisibleElementAction("text 6 text text", "key.png", KeyStroke.getKeyStroke("1")) {
+//            @Override public void run(StructuredEditorModel model) {System.out.println(6);}});
+//        actionsListComponent.addAction(new VisibleElementAction("text 7 text text", "key.png", KeyStroke.getKeyStroke("1")) {
+//            @Override public void run(StructuredEditorModel model) {System.out.println(7);}});
+//        actionsListComponent.addAction(new VisibleElementAction("text 8 text text", "key.png", KeyStroke.getKeyStroke("1")) {
+//            @Override public void run(StructuredEditorModel model) {System.out.println(8);}});
+//        actionsListComponent.addAction(new VisibleElementAction("text 9 text text", "key.png", KeyStroke.getKeyStroke("1")) {
+//            @Override public void run(StructuredEditorModel model) {System.out.println(9);}});
+//        actionsListComponent.addAction(new VisibleElementAction("text 10 text text", "key.png", KeyStroke.getKeyStroke("1")) {
+//            @Override public void run(StructuredEditorModel model) {System.out.println(10);}});
+//        actionsListComponent.addAction(new VisibleElementAction("text 11 text text", "key.png", KeyStroke.getKeyStroke("1")) {
+//            @Override public void run(StructuredEditorModel model) {System.out.println(11);}});
     }
 
     @Override

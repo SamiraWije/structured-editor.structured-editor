@@ -43,7 +43,7 @@ public class AutoCompleteCellRenderer extends DefaultListCellRenderer {
                     .replaceAll("<", "&lt;")
                     .replaceAll(">", "&gt;");
 
-            value = DataShowUtils.htmlLayout("", "Для \"" + searchString + "\" соответствий не найдено");
+            value = DataShowUtils.htmlLayout("", "Не найдено: \"" + searchString + "\"");
 
             needIcon = false;
         } else {

@@ -384,7 +384,8 @@ public class DataShowUtils {
         else
             sb
                     .append("<html>")
-                    .append("<table width='100%'><tr><td>")
+//                    .append("<table width='100%'><tr><td>")
+                    .append("<table><tr><td>")
                     .append(leftText)
                     .append("</td><td align='right' style='color:" + RIGHT_TEXT_COLOR + "; font-weight:100'>")
                     .append(rightText)
