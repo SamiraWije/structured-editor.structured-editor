@@ -102,6 +102,8 @@ public abstract class VisibleElement {
             int y = 0;
             if (parent != null) {
                 TextPosition tp = parent.getChildPosition(cur);
+                if (tp == null)
+                    throw new RuntimeException("Trying to evaluate position of not rooted visible element");
                 x = tp.getColumn();
                 y = tp.getLine();
             }

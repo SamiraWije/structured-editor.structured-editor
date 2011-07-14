@@ -32,6 +32,8 @@ public class EnumEditorV2 extends FieldEditor {
 
             ContainerElement element = (ContainerElement) getElement();
 
+            model.setFocusedElementAndCaret(element);
+
             ((AutoCompleteTextElement) element.getSubElement()).popup();
         }
     };
@@ -41,6 +43,7 @@ public class EnumEditorV2 extends FieldEditor {
         public void run(StructuredEditorModel model) {
             setValue(null);
             updateElement();
+            model.setFocusedElementAndCaret(getElement());
         }
     };
 
@@ -51,6 +54,7 @@ public class EnumEditorV2 extends FieldEditor {
             Object selectedValue = ((AutoCompleteTextElement) element.getSubElement()).getSelectedValue();
             setValue(selectedValue);
             updateElement();
+            getModel().setFocusedElementAndCaret(getElement());
         }
     };
 

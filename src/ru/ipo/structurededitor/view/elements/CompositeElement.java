@@ -4,13 +4,14 @@ import ru.ipo.structurededitor.view.Display;
 import ru.ipo.structurededitor.view.StructuredEditorModel;
 import ru.ipo.structurededitor.view.TextPosition;
 import ru.ipo.structurededitor.view.TextProperties;
-import ru.ipo.structurededitor.view.events.GeoSelectionChangedEvent;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Created by IntelliJ IDEA.
@@ -21,6 +22,7 @@ import java.util.ArrayList;
 public class CompositeElement extends VisibleElement {
 
     private static class PositionedElement {
+
         public int x;
         public int y;
         public VisibleElement element;
@@ -46,6 +48,12 @@ public class CompositeElement extends VisibleElement {
         Vertical,
         Horizontal,
     }
+
+    private final PropertyChangeListener sizeChangeListener = new PropertyChangeListener() {
+        public void propertyChange(PropertyChangeEvent evt) {
+            reposition();
+        }
+    };
 
     public CompositeElement(StructuredEditorModel model, Orientation orientation) {
         super(model);
@@ -80,12 +88,29 @@ public class CompositeElement extends VisibleElement {
         }
     }
 
-   /* @Override
-    public void processGeoSelectionChangedEvent(GeoSelectionChangedEvent evt) {
-        for (PositionedElement el : elements) {
-            el.element.processGeoSelectionChangedEvent(evt);
+    public void setElements(VisibleElement... visibleElementList) {
+        setElements(Arrays.asList(visibleElementList));
+    }
+
+    public void setElements(List<VisibleElement> visibleElementList) {
+        //remove all listeners from current elements
+        for (PositionedElement element : elements) {
+            element.element.removePropertyChangeListener("width", sizeChangeListener);
+            element.element.removePropertyChangeListener("height", sizeChangeListener);
         }
-    }*/
+
+        elements.clear();
+
+        for (VisibleElement visibleElement : visibleElementList) {
+            elements.add(new PositionedElement(visibleElement));
+            visibleElement.setParent(this);
+
+            visibleElement.addPropertyChangeListener("width", sizeChangeListener);
+            visibleElement.addPropertyChangeListener("height", sizeChangeListener);
+        }
+
+        reposition();
+    }
 
     public void add(VisibleElement element) {
         add(element, elements.size());
@@ -96,11 +121,6 @@ public class CompositeElement extends VisibleElement {
         element.setParent(this);
         reposition();
 
-        PropertyChangeListener sizeChangeListener = new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent evt) {
-                reposition();
-            }
-        };
         element.addPropertyChangeListener("width", sizeChangeListener);
         element.addPropertyChangeListener("height", sizeChangeListener);
     }
@@ -133,17 +153,15 @@ public class CompositeElement extends VisibleElement {
     }
 
     public void remove(VisibleElement element) {
-        for (PositionedElement pe : elements) {
-            if (pe.element == element) {
-                elements.remove(pe);
-                break;
-            }
-        }
-        reposition();
+        for (int i = 0; i < elements.size(); i++)
+            if (elements.get(i).element == element)
+                remove(i);
     }
 
     public void remove(int index) {
-        elements.remove(index);
+        PositionedElement removed = elements.remove(index);
+        removed.element.removePropertyChangeListener("width", sizeChangeListener);
+        removed.element.removePropertyChangeListener("height", sizeChangeListener);
         reposition();
     }
 
@@ -214,143 +232,4 @@ public class CompositeElement extends VisibleElement {
         return new TextPosition(element.y, element.x);
     }
 
-    /*
-    @Override
-    public void gainFocus(TextPosition pos, boolean shift, boolean ctrl) {
-        if (getChildrenCount() == 0) return;
-
-        PositionedElement pe = null;
-
-        switch (orientation) {
-            case Vertical:
-                int ind = -1;
-                for (int i = 0; i < getChildrenCount() - 1; i++)
-                    if (elements.get(i).y <= pos.getLine() && pos.getLine() <= elements.get(i + 1).y - 1) {
-                        ind = i;
-                        break;
-                    }
-
-                if (ind == -1)
-                    ind = getChildrenCount() - 1;
-
-                pe = elements.get(ind);
-
-                break;
-            case Horizontal:
-                ind = -1;
-                for (int i = 0; i < getChildrenCount() - 1; i++)
-                    if (elements.get(i).x <= pos.getColumn() && pos.getColumn() <= elements.get(i + 1).x) {
-                        ind = i;
-                        break;
-                    }
-
-                if (ind == -1)
-                    ind = getChildrenCount() - 1;
-
-                pe = elements.get(ind);
-
-                break;
-        }
-
-        int line = pos.getLine() - pe.y;
-        int col = pos.getColumn() - pe.x;
-
-        if (line >= pe.element.getHeight())
-            line = pe.element.getHeight() - 1;
-        if (col >= pe.element.getWidth())
-            col = pe.element.getWidth() - 1;
-
-        pe.element.gainFocus(new TextPosition(line, col), shift, ctrl);
-    }
-
-    private int findChildByAncestor(VisibleElement ancestor) {
-        int i = 0;
-        for (PositionedElement pe : elements) {
-            if (pe.element.isParentOf(ancestor))
-                return i;
-            i++;
-        }
-
-        return -1;
-    }
-    */
-
-    /*
-    @Override
-    public boolean processKeyEvent(KeyEvent e) {
-        boolean shift = (e.getModifiersEx() & KeyEvent.SHIFT_DOWN_MASK) != 0;
-        boolean ctrl = (e.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK) != 0;
-
-        switch (e.getKeyCode()) {
-            case KeyEvent.VK_LEFT:
-                if (orientation == Orientation.Horizontal)
-                    return moveCaretKeyPressed(shift, ctrl, -1);
-                else
-                    return moveCaretKeyPressed(shift, ctrl, -2);
-            case KeyEvent.VK_RIGHT:
-                if (orientation == Orientation.Horizontal)
-                    return moveCaretKeyPressed(shift, ctrl, +1);
-                else
-                    return moveCaretKeyPressed(shift, ctrl, +2);
-            case KeyEvent.VK_UP:
-                if (orientation == Orientation.Horizontal)
-                    return moveCaretKeyPressed(shift, ctrl, -2);
-                else
-                    return moveCaretKeyPressed(shift, ctrl, -1);
-            case KeyEvent.VK_DOWN:
-                if (orientation == Orientation.Horizontal)
-                    return moveCaretKeyPressed(shift, ctrl, +2);
-                else
-                    return moveCaretKeyPressed(shift, ctrl, +1);
-        }
-
-        return true;
-    }
-    */
-
-    /*
-    private boolean moveCaretKeyPressed(boolean shift, boolean ctrl, int childInc) {
-        VisibleElement focused = getModel().getElementUnderCaret();
-        VisibleElement prevFocused = getModel().getPreviousFocusedElement();
-
-        if (Math.abs(childInc) == 2)
-            return false;
-
-        int childInd;
-        if (focused == this) {
-            if (isParentOf(prevFocused) && previousOutDirection == childInc) { //move out
-                previousOutDirection = childInc;
-                return false;
-            } else { //then go inside
-                if (childInc < 0)
-                    childInd = getChildrenCount() - 1;
-                else
-                    childInd = 0;
-            }
-        } else { //if focused is an ancestor, go Up/Left
-            childInd = findChildByAncestor(focused);
-            if (childInd == -1) return true;
-            childInd += childInc;
-        }
-
-        //if it was the last child and need to select all component
-        if (focused != this)
-            if (Math.abs(childInc) == 2 || childInd < 0 || childInd >= getChildrenCount()) {
-                previousOutDirection = childInc;
-                getModel().setFocusedElement(this);
-                return true;
-            }
-
-        //select next child
-        VisibleElement child = getChild(childInd);
-        child.gainFocus(
-                childInc < 0 ?
-                        new TextPosition(child.getHeight() - 1, child.getWidth())
-                        :
-                        new TextPosition(0, 0),
-                shift, ctrl
-        );
-        return true;
-    }
-    */
 }

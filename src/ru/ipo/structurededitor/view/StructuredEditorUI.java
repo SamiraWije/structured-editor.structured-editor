@@ -107,6 +107,8 @@ public class StructuredEditorUI extends ComponentUI {
 
         caretBlinkTimer.addActionListener(caretBlinkListener);
 
+        editor.setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
+
         //add listeners
         editor.getModel().addPropertyChangeListener("focusedElement",
                 new PropertyChangeListener() {
@@ -260,8 +262,8 @@ public class StructuredEditorUI extends ComponentUI {
         //get focused rectangle
         VisibleElement focusedElement = se.getModel().getFocusedElement();
         Rectangle focusedRectangle = null;
-        //TODO remove a hack about highlighting only text editor elements
-        if (focusedElement != null && !se.isView() && focusedElement instanceof TextEditorElement /*&& editor.isFocusOwner()*/) {
+        //TODO highlight only elements that have actions or react to keystrokes
+        if (focusedElement != null && !se.isView() /*&& editor.isFocusOwner()*/) {
             TextPosition fpos = focusedElement.getAbsolutePosition();
 
             focusedRectangle = new Rectangle(d.xToPixels(fpos.getColumn()), d

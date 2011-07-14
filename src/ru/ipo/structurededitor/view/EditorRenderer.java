@@ -3,6 +3,7 @@ package ru.ipo.structurededitor.view;
 import ru.ipo.structurededitor.controller.EditorsRegistry;
 import ru.ipo.structurededitor.model.*;
 import ru.ipo.structurededitor.view.editors.ArrayEditor;
+import ru.ipo.structurededitor.view.editors.ArrayEditorV2;
 import ru.ipo.structurededitor.view.editors.FieldEditor;
 import ru.ipo.structurededitor.view.editors.StringEditor;
 import ru.ipo.structurededitor.view.elements.CompositeElement;
@@ -75,15 +76,31 @@ public class EditorRenderer {
             //ArrayEditor ed;
             if (layout instanceof VertArray) {
                 VertArray vertArray = (VertArray) layout;
-                ArrayEditor ed = new ArrayEditor(editableBean, vertArray.getFieldName(),
-                        CompositeElement.Orientation.Vertical, vertArray.getSpaceChar(), vertArray.getSingleLined(),
-                        model);
+//                ArrayEditor ed = new ArrayEditor(editableBean, vertArray.getFieldName(),
+//                        CompositeElement.Orientation.Vertical, vertArray.getSpaceChar(), vertArray.getSingleLined(),
+//                        model);
+                ArrayEditorV2 ed = new ArrayEditorV2(
+                        editableBean,
+                        vertArray.getFieldName(),
+                        null,
+                        CompositeElement.Orientation.Vertical,
+                        vertArray.getSpaceChar(),
+                        model
+                );
                 return ed.getElement();
             } else {
                 HorizArray horizArray = (HorizArray) layout;
-                ArrayEditor ed = new ArrayEditor(editableBean, horizArray.getFieldName(),
+                /*ArrayEditor ed = new ArrayEditor(editableBean, horizArray.getFieldName(),
                         CompositeElement.Orientation.Horizontal, horizArray.getSpaceChar(), horizArray.getSingleLined(),
-                        model);
+                        model);*/
+                ArrayEditorV2 ed = new ArrayEditorV2(
+                        editableBean,
+                        horizArray.getFieldName(),
+                        null,
+                        CompositeElement.Orientation.Horizontal,
+                        horizArray.getSpaceChar(),
+                        model
+                );
                 return ed.getElement();
             }
 

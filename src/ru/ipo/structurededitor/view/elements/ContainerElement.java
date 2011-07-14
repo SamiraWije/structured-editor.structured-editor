@@ -3,9 +3,7 @@ package ru.ipo.structurededitor.view.elements;
 import ru.ipo.structurededitor.view.Display;
 import ru.ipo.structurededitor.view.StructuredEditorModel;
 import ru.ipo.structurededitor.view.TextPosition;
-import ru.ipo.structurededitor.view.events.GeoSelectionChangedEvent;
 
-import javax.swing.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
@@ -20,6 +18,13 @@ import java.beans.PropertyChangeListener;
 public class ContainerElement extends VisibleElement {
 
     private VisibleElement subElement;
+
+    private final PropertyChangeListener sizeListener = new PropertyChangeListener() {
+        public void propertyChange(PropertyChangeEvent evt) {
+            setWidth(subElement.getWidth());
+            setHeight(subElement.getHeight());
+        }
+    };
 
     public ContainerElement(StructuredEditorModel model, VisibleElement subElement) {
         super(model);
@@ -46,26 +51,11 @@ public class ContainerElement extends VisibleElement {
         return subElement;
     }
 
-
     @Override
     public void processMouseEvent(MouseEvent evt) {
-        /*TextPosition position = subElement.getAbsolutePosition();
-        int x = position.getColumn();
-        int y = position.getLine() + 1;
-        if (evt.getX() >= x && evt.getX() < x + subElement.getWidth()
-                && evt.getY() >= y && evt.getY() < y + subElement.getHeight())*/
         subElement.processMouseEvent(evt);
 
     }
-
-    /*public void processGeoSelectionChangedEvent(GeoSelectionChangedEvent evt) {
-        /*TextPosition position = subElement.getAbsolutePosition();
-        int x = position.getColumn();
-        int y = position.getLine() + 1;
-        if (evt.getX() >= x && evt.getX() < x + subElement.getWidth()
-                && evt.getY() >= y && evt.getY() < y + subElement.getHeight())** /
-        subElement.processGeoSelectionChangedEvent(evt);
-    }   */
 
     public boolean isEmpty() {
         return subElement == null || subElement.isEmpty();
@@ -74,6 +64,12 @@ public class ContainerElement extends VisibleElement {
     public void setSubElement(final VisibleElement subElement) {
         if (subElement == null)
             throw new NullPointerException("Can not set null sub element");
+
+        if (this.subElement != null) {
+            this.subElement.removePropertyChangeListener("width", sizeListener);
+            this.subElement.removePropertyChangeListener("height", sizeListener);
+        }
+
         this.subElement = subElement;
         subElement.setParent(this);
 
@@ -81,16 +77,8 @@ public class ContainerElement extends VisibleElement {
         setWidth(subElement.getWidth());
         setHeight(subElement.getHeight());
 
-        PropertyChangeListener sizeListener = new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent evt) {
-                setWidth(subElement.getWidth());
-                setHeight(subElement.getHeight());
-            }
-        };
         subElement.addPropertyChangeListener("width", sizeListener);
         subElement.addPropertyChangeListener("height", sizeListener);
-
-        getModel().setFocusedElementAndCaret(subElement);
     }
 
     public VisibleElement getSubElement() {
@@ -101,13 +89,5 @@ public class ContainerElement extends VisibleElement {
     protected void processKeyEvent(KeyEvent e) {
         super.processKeyEvent(e);    //To change body of overridden methods use File | Settings | File Templates.
     }
-
-
-    /*
-    @Override
-    public void gainFocus(TextPosition pos, boolean shift, boolean ctrl) {
-        subElement.gainFocus(pos, shift, ctrl);
-    }
-    */
 
 }

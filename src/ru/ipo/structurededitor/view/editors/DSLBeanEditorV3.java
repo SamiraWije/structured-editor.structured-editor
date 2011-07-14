@@ -97,7 +97,9 @@ public class DSLBeanEditorV3 extends FieldEditor implements PropertyChangeListen
 
     @Override
     protected void updateElement() {
-        ((ContainerElement) getElement()).setSubElement(createInnerComponent());
+        VisibleElement innerComponent = createInnerComponent();
+        ((ContainerElement) getElement()).setSubElement(innerComponent);
+        getModel().setFocusedElementAndCaret(innerComponent);
     }
 
     private List<AutoCompleteElement> getAutoCompleteElements() {
