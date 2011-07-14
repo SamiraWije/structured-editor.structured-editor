@@ -13,23 +13,12 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.io.InputStream;
 
 /**
  * Created by IntelliJ IDEA. User: Ilya Date: 02.01.2010 Time: 14:52:43
  */
 public class StructuredEditor extends JComponent implements Scrollable {
-
-    static {
-        UIManager.put("StructuredEditorUI", "ru.ipo.structurededitor.view.StructuredEditorUI");
-        UIManager.put("StructuredEditor.font", new Font(Font.MONOSPACED, Font.PLAIN, 14));
-        UIManager.put("StructuredEditor.horizontalMargin", 0);
-        UIManager.put("StructuredEditor.verticalMargin", 0);
-
-        UIManager.put("ActionsListComponent.background", new Color(0xEEEEEE));
-
-        UIManager.put("AutoCompleteTextElement.unknownShortcut", new Color(0xDD3300));
-        UIManager.put("AutoCompleteTextElement.knownShortcut", new Color(0x33DD00));
-    }
 
     private boolean view = false;
 
@@ -180,10 +169,18 @@ public class StructuredEditor extends JComponent implements Scrollable {
                 else
                     model.setFocusedElement(newFocused);
                 //VisibleElement el = model.getRootElement();
-                e = new MouseEvent((Component) e.getSource(), e.getID(), e.getWhen(), e.getModifiers(), x,
-                        y, e.getClickCount(), e.isPopupTrigger(), e.getButton());
+                e = new MouseEvent(
+                        (Component) e.getSource(),
+                        e.getID(),
+                        e.getWhen(),
+                        e.getModifiers(),
+                        x,
+                        y,
+                        e.getClickCount(),
+                        e.isPopupTrigger(),
+                        e.getButton()
+                );
                 newFocused.fireMouseEvent(e);
-
             }
         }
 
@@ -228,5 +225,40 @@ public class StructuredEditor extends JComponent implements Scrollable {
 
     public ActionsListComponent getActionsListComponent() {
         return actionsListComponent;
+    }
+
+    //TODO this should be done when L&F is loading, now we don't load load L&F so this method must be called before any usage of Structured Editor
+    public static void initializeStructuredEditorUI() {
+        try {
+            String[] fonts = {
+                    "DejaVuSansMono-Bold.ttf",
+                    "DejaVuSansMono-BoldOblique.ttf",
+                    "DejaVuSansMono-Oblique.ttf",
+                    "DejaVuSansMono.ttf"
+            };
+            for (String font : fonts) {
+                InputStream fontStream = StructuredEditor.class.getResourceAsStream("resources/" + font);
+                Font f = Font.createFont(Font.TRUETYPE_FONT, fontStream);
+                GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(f);
+                fontStream.close();
+            }
+        } catch (Exception e) {
+            throw new Error("Failed to load fonts");
+        }
+
+        UIManager.put("StructuredEditorUI", "ru.ipo.structurededitor.view.StructuredEditorUI");
+        UIManager.put("StructuredEditor.font", new Font(Font.MONOSPACED/*"DejaVu Sans Mono"*/, Font.PLAIN, 14));
+        UIManager.put("StructuredEditor.horizontalMargin", 0);
+        UIManager.put("StructuredEditor.verticalMargin", 0);
+        UIManager.put("StructuredEditor.focusedColor", new Color(0xFFFF88));
+        UIManager.put("StructuredEditor.textSelection.color", new Color(0x00FFFF));
+
+        UIManager.put("StructuredEditor.text.edit.color", new Color(0x0000FF));
+        UIManager.put("StructuredEditor.text.number.color", new Color(0x008800));
+
+        UIManager.put("ActionsListComponent.background", new Color(0xEEEEEE));
+
+        UIManager.put("AutoCompleteTextElement.unknownShortcut", new Color(0xDD3300));
+        UIManager.put("AutoCompleteTextElement.knownShortcut", new Color(0x33DD00));
     }
 }

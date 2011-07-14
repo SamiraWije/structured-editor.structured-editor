@@ -4,10 +4,11 @@ import ru.ipo.structurededitor.view.Display;
 import ru.ipo.structurededitor.view.StructuredEditorModel;
 import ru.ipo.structurededitor.view.TextProperties;
 
-import java.awt.*;
+import javax.swing.*;
+import java.awt.Font;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
-import java.util.Vector;
+import java.util.List;
 
 /**
  * Created by IntelliJ IDEA.
@@ -24,24 +25,26 @@ public class TextEditorElement extends TextElement {
     //public 
 
     //Color constants
-    public static final Color USER_TEXT_COLOR = Color.BLUE;
-    public static final Color USER_EDIT_TEXT_COLOR = Color.RED;
     private boolean singleLined = false;
+    private final TextProperties editableTextProperties = new TextProperties(
+            Font.BOLD,
+            UIManager.getColor("StructuredEditor.text.edit.color")
+    );
 
     public TextEditorElement(StructuredEditorModel model, String text, boolean singleLined) {
-        super(model, text);
+        this(model, text);
         this.singleLined = singleLined;
-        //System.out.println("Text was created with value: ");
     }
 
     public TextEditorElement(StructuredEditorModel model, String text) {
         super(model, text);
-        //System.out.println("Text was created with value: ");
+        setTextProperties(editableTextProperties);
     }
 
 
     public TextEditorElement(StructuredEditorModel model) {
         super(model);
+        setTextProperties(editableTextProperties);
     }
 
     public void resetPosition() {
@@ -51,14 +54,9 @@ public class TextEditorElement extends TextElement {
         yMarkPosition = -1;
     }
 
-    public void setUnfocusedElementProps() {
-        setTextProperties(new TextProperties(Font.PLAIN, USER_TEXT_COLOR));
-    }
-
     @Override
     public void drawElement(int x0, int y0, Display d) {
         if (!isFocused() || isView()) {
-            setUnfocusedElementProps();
             super.drawElement(x0, y0, d);
             return;
         }
@@ -66,7 +64,9 @@ public class TextEditorElement extends TextElement {
         //draw selection
         if (isFocused() && xMarkPosition >= 0 && xCaretPosition >= 0 &&
                 !(xMarkPosition == xCaretPosition && yMarkPosition == yCaretPosition)) {
-            d.getGraphics().setColor(Color.BLUE);
+
+            d.getGraphics().setColor(UIManager.getColor("StructuredEditor.textSelection.color"));
+
             if (yMarkPosition == yCaretPosition) {
                 int begin = Math.min(xCaretPosition, xMarkPosition);
                 int end = Math.max(xCaretPosition, xMarkPosition);
@@ -87,7 +87,7 @@ public class TextEditorElement extends TextElement {
                     yEnd = yMarkPosition;
                 }
                 int x1 = d.xToPixels(x0 + xBegin), y1 = d.yToPixels(y0 + yBegin - 1);
-                int x2 = d.xToPixels(x0 + ((String) getLines().get(yBegin)).length()),
+                int x2 = d.xToPixels(x0 + getLines().get(yBegin).length()),
                         y2 = d.yToPixels(y0 + yBegin);
                 d.getGraphics().fillRect(x1, y2, x2 - x1, y2 - y1);
                 int delta = yEnd - yBegin;
@@ -95,7 +95,7 @@ public class TextEditorElement extends TextElement {
                     for (int i = yBegin + 1; i < yEnd; i++) {
                         x1 = d.xToPixels(x0);
                         y1 = d.yToPixels(y0 + i - 1);
-                        x2 = d.xToPixels(x0 + ((String) getLines().get(i)).length());
+                        x2 = d.xToPixels(x0 + getLines().get(i).length());
                         y2 = d.yToPixels(y0 + i);
                         d.getGraphics().fillRect(x1, y2, x2 - x1, y2 - y1);
                     }
@@ -108,13 +108,11 @@ public class TextEditorElement extends TextElement {
             }
         }
 
-        setTextProperties(new TextProperties(Font.PLAIN, USER_EDIT_TEXT_COLOR));
         super.drawElement(x0, y0, d);
 
         //draw caret
         /*if (isFocused())
             getModel().showCaret(x0 + xCaretPosition, y0 + yCaretPosition, d);*/
-
     }
 
     @Override
@@ -191,7 +189,7 @@ public class TextEditorElement extends TextElement {
             case KeyEvent.VK_END:
                 final String txt = getText();
                 if (txt == null) return;
-                if (xMoveCaret(((String) getLines().get(yCaretPosition)).length(), shift))
+                if (xMoveCaret(getLines().get(yCaretPosition).length(), shift))
                     e.consume();
                 return;
             case KeyEvent.VK_ENTER:
@@ -215,10 +213,10 @@ public class TextEditorElement extends TextElement {
         String text = getText();
         if (text == null)
             text = "";
-        Vector v = getLines();
+        List<String> v = getLines();
         int pos = xCaretPosition;
         for (int i = 0; i < yCaretPosition; i++) {
-            pos += ((String) v.get(i)).length() + 1;
+            pos += v.get(i).length() + 1;
         }
 
         StringBuilder sb = new StringBuilder();
@@ -235,11 +233,11 @@ public class TextEditorElement extends TextElement {
         int i = 0;
         int iPos = 0;
         while (iPos <= newPos) {
-            iPos += ((String) v.get(i)).length() + 1;
+            iPos += v.get(i).length() + 1;
             i++;
         }
         newYCaretPosition = i - 1;
-        newXCaretPosition = ((String) v.get(i - 1)).length() - iPos + newPos + 1;
+        newXCaretPosition = v.get(i - 1).length() - iPos + newPos + 1;
         setCaretPosition(newXCaretPosition, newYCaretPosition);
 
         getModel().setAbsoluteCaretY(yCaretPosition + y0);
@@ -259,10 +257,10 @@ public class TextEditorElement extends TextElement {
         String text = getText();
         if (text == null)
             text = "";
-        Vector v = getLines();
+        List<String> v = getLines();
         int pos = xCaretPosition;
         for (int i = 0; i < yCaretPosition; i++) {
-            pos += ((String) v.get(i)).length() + 1;
+            pos += v.get(i).length() + 1;
         }
 
         StringBuilder sb = new StringBuilder();
@@ -280,16 +278,16 @@ public class TextEditorElement extends TextElement {
     }
 
     private void setStringCaretPosition(int newPos) {
-        Vector v = getLines();
+        List<String> v = getLines();
         int newYCaretPosition, newXCaretPosition;
         int i = 0;
         int iPos = 0;
         while (iPos <= newPos) {
-            iPos += ((String) v.get(i)).length() + 1;
+            iPos += v.get(i).length() + 1;
             i++;
         }
         newYCaretPosition = i - 1;
-        newXCaretPosition = ((String) v.get(i - 1)).length() - iPos + newPos + 1;
+        newXCaretPosition = v.get(i - 1).length() - iPos + newPos + 1;
         setCaretPosition(newXCaretPosition, newYCaretPosition);
     }
 
@@ -304,10 +302,10 @@ public class TextEditorElement extends TextElement {
         }
 
         String text = getText();
-        Vector v = getLines();
+        List<String> v = getLines();
         int pos = xCaretPosition;
         for (int i = 0; i < yCaretPosition; i++) {
-            pos += ((String) v.get(i)).length() + 1;
+            pos += v.get(i).length() + 1;
         }
         if (text == null)
             return;
@@ -339,10 +337,10 @@ public class TextEditorElement extends TextElement {
         String text = getText();
         if (text == null)
             return;
-        Vector v = getLines();
+        List<String> v = getLines();
         int pos = xCaretPosition;
         for (int i = 0; i < yCaretPosition; i++) {
-            pos += ((String) v.get(i)).length() + 1;
+            pos += v.get(i).length() + 1;
         }
         if (pos == text.length())
             return;
@@ -364,14 +362,14 @@ public class TextEditorElement extends TextElement {
         String text = getText();
         if (text == null)
             return;
-        Vector v = getLines();
+        List<String> v = getLines();
         int pos1 = xCaretPosition;
         for (int i = 0; i < yCaretPosition; i++) {
-            pos1 += ((String) v.get(i)).length() + 1;
+            pos1 += v.get(i).length() + 1;
         }
         int pos2 = xMarkPosition;
         for (int i = 0; i < yMarkPosition; i++) {
-            pos2 += ((String) v.get(i)).length() + 1;
+            pos2 += v.get(i).length() + 1;
         }
         int begin = Math.min(pos1, pos2);
         int end = Math.max(pos1, pos2);
@@ -396,10 +394,10 @@ public class TextEditorElement extends TextElement {
         yCaretPosition = getModel().getAbsoluteCaretY() - y0;
 
         int newYPosition = yCaretPosition;
-        int len = getText() == null ? 0 : ((String) getLines().get(yCaretPosition)).length();
+        int len = getText() == null ? 0 : getLines().get(yCaretPosition).length();
         if (newXPosition < 0) {
             if (yCaretPosition > 0) {
-                newXPosition = ((String) getLines().get(yCaretPosition - 1)).length();
+                newXPosition = getLines().get(yCaretPosition - 1).length();
                 newYPosition--;
             } else
                 return shift;
@@ -446,7 +444,7 @@ public class TextEditorElement extends TextElement {
         if (newYPosition < 0 || newYPosition >= len) {
             return shift;
         }
-        int newStrLen = ((String) getLines().get(newYPosition)).length();
+        int newStrLen = getLines().get(newYPosition).length();
         if (xCaretPosition > newStrLen) {
             newXPosition = newStrLen;
         }
@@ -471,7 +469,7 @@ public class TextEditorElement extends TextElement {
         int y0 = getAbsolutePosition().getLine();
         xCaretPosition = getModel().getAbsoluteCaretX() - x0;
         yCaretPosition = getModel().getAbsoluteCaretY() - y0;
-        int len = getText() == null ? 0 : ((String) getLines().get(yCaretPosition)).length();
+        int len = getText() == null ? 0 : getLines().get(yCaretPosition).length();
         if (xCaretPosition >= len)
             xCaretPosition = len;
 

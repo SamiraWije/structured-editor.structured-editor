@@ -4,13 +4,14 @@ import ru.ipo.structurededitor.view.Display;
 import ru.ipo.structurededitor.view.StructuredEditorModel;
 import ru.ipo.structurededitor.view.TextProperties;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Font;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Vector;
+import java.util.List;
 
 /**
  * Created by IntelliJ IDEA.
@@ -21,7 +22,7 @@ import java.util.Vector;
 public class TextElement extends VisibleElement {
 
     private String text;
-    private Vector lines;
+    private List<String> lines;
 
     //Color constants
     public static final Color NORMAL_TEXT_COLOR = Color.BLACK;
@@ -50,18 +51,17 @@ public class TextElement extends VisibleElement {
     }
 
 
-    protected Vector getLines() {
+    protected List<String> getLines() {
         return lines;
     }
 
     protected void updateLines() {
         try {
             if (text != null) {
-                Collection list = Arrays.asList(text.split("\n", -1));
-                lines = new Vector(list);
+                lines = Arrays.asList(text.split("\n", -1));
                 int i = 0;
                 while (i < lines.size()) {
-                    String str = (String) lines.get(i);
+                    String str = lines.get(i);
                     if (str.length() > LINE_LENGTH) {
                         String str1 = str.substring(0, LINE_LENGTH);
                         int posSpace = str1.lastIndexOf(' ');
@@ -71,13 +71,12 @@ public class TextElement extends VisibleElement {
                             posSpace = LINE_LENGTH - 1;
                         String str2 = str.substring(posSpace + 1);
                         lines.set(i, str1);
-                        lines.insertElementAt(str2, i + 1);
-
+                        lines.add(i + 1, str2);
                     }
                     i++;
                 }
             } else {
-                lines = new Vector();
+                lines = new ArrayList<String>();
                 lines.add("");
             }
         } catch (Exception e) {
@@ -87,6 +86,7 @@ public class TextElement extends VisibleElement {
 
     public void setTextProperties(TextProperties tp) {
         textProperties = tp;
+        repaint();
     }
 
     public int countWidth() {
@@ -146,7 +146,6 @@ public class TextElement extends VisibleElement {
     }
 
     private void drawText(TextProperties textProperties, int x0, int y0, Display d) {
-        //int x =x0;
         int y, i = 0;
 
         for (Object str : lines) {

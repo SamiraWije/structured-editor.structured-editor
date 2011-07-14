@@ -2,8 +2,11 @@ package ru.ipo.structurededitor.view.editors;
 
 import ru.ipo.structurededitor.controller.FieldMask;
 import ru.ipo.structurededitor.view.StructuredEditorModel;
-import ru.ipo.structurededitor.view.elements.IntEditorElement;
+import ru.ipo.structurededitor.view.TextProperties;
+import ru.ipo.structurededitor.view.elements.TextEditorElement;
 
+import javax.swing.*;
+import java.awt.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
@@ -15,17 +18,26 @@ import java.beans.PropertyChangeListener;
  */
 public class IntEditor extends FieldEditor {
 
-
     public IntEditor(Object o, String fieldName, FieldMask mask, StructuredEditorModel model) {
         super(o, fieldName, mask, model);
+
         setModificationVector(model.getModificationVector());
+
         String text;
         Object val = getValue();
         if (val == null)
             text = "";
         else
             text = Integer.toString((Integer) val);
-        final IntEditorElement editorElement = new IntEditorElement(model, text);
+
+        final TextEditorElement editorElement = new TextEditorElement(model, text);
+
+        TextProperties textProperties = new TextProperties(
+                Font.BOLD,
+                UIManager.getColor("StructuredEditor.text.number.color")
+        );
+        editorElement.setTextProperties(textProperties);
+
         editorElement.addPropertyChangeListener("text", new PropertyChangeListener() {
             public void propertyChange(PropertyChangeEvent evt) {
                 try {
@@ -37,12 +49,13 @@ public class IntEditor extends FieldEditor {
 
             }
         });
+
         setElement(editorElement);
     }
 
     @Override
     protected void updateElement() {
-        IntEditorElement editorElement = (IntEditorElement) getElement();
+        TextEditorElement editorElement = (TextEditorElement) getElement();
         Object val = getValue();
         editorElement.setText(val == null ? "" : val.toString());
     }

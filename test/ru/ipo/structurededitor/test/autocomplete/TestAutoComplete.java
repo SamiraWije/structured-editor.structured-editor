@@ -15,7 +15,9 @@ import java.awt.*;
  */
 public class TestAutoComplete {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws ClassNotFoundException, UnsupportedLookAndFeelException, IllegalAccessException, InstantiationException {
+        StructuredEditor.initializeStructuredEditorUI();
+
         StructuredEditorModel model = new StructuredEditorModel(new RootBean());
 
         DSLBeansRegistry registry = new DSLBeansRegistry();

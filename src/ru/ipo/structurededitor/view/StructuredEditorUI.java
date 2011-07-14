@@ -274,7 +274,7 @@ public class StructuredEditorUI extends ComponentUI {
 
         //draw focused element
         if (focusedRectangle != null && editor.hasFocus()) {
-            g.setColor(Color.yellow);
+            g.setColor(UIManager.getColor("StructuredEditor.focusedColor"));
             g.fillRect(focusedRectangle.x, focusedRectangle.y,
                     focusedRectangle.width, focusedRectangle.height);
         }

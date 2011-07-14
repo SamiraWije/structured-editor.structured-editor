@@ -12,6 +12,14 @@ public class Display {
     private final StructuredEditorUI ui;
 
     public Display(Graphics g, StructuredEditorUI ui) {
+
+        //TODO make antialiasing depending on monitor type
+        //antialiasing by http://download.oracle.com/javase/tutorial/2d/text/renderinghints.html
+        ((Graphics2D) g).setRenderingHint(
+                RenderingHints.KEY_TEXT_ANTIALIASING,
+                RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB
+        );
+
         this.g = g;
         this.ui = ui;
         g.setFont(UIManager.getFont("StructuredEditor.font"));

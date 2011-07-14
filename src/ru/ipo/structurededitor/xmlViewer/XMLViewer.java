@@ -17,7 +17,6 @@ import java.io.FileNotFoundException;
  * User: oleg
  * Date: 28.08.2010
  * Time: 12:24:05
- * To change this template use File | Settings | File Templates.
  */
 public class XMLViewer extends JComponent implements Scrollable {
     private String fileName;
