@@ -4,14 +4,8 @@ import ru.ipo.structurededitor.view.Display;
 import ru.ipo.structurededitor.view.StructuredEditorModel;
 import ru.ipo.structurededitor.view.TextProperties;
 
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.event.MouseEvent;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
+import java.awt.*;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * Created by IntelliJ IDEA.
@@ -22,66 +16,66 @@ import java.util.List;
 public class TextElement extends VisibleElement {
 
     private String text;
-    private List<String> lines;
 
-    //Color constants
-    public static final Color NORMAL_TEXT_COLOR = Color.BLACK;
+    /**
+     * Влияет на способ отображения элемента. Если <code>singleLine==true</code>, то все переводы строк
+     * отображаются как \n, и высота элемента всегда равно 1. Иначе переводы строк работают как переводы
+     * строк, высота элемента зависит от количества строк.
+     */
+    private final boolean singleLine;
 
-    private TextProperties textProperties = new TextProperties(Font.PLAIN, NORMAL_TEXT_COLOR);
-    private TextProperties nullTextProperties = new TextProperties(Font.BOLD, Color.LIGHT_GRAY);
-    public final int LINE_LENGTH = 50;
+    private TextProperties textProperties = new TextProperties(Font.PLAIN, Color.BLACK); //TODO move to UIManager
 
-    private final String NULL_STRING = "[Пусто]";
-    public String emptyString = NULL_STRING;
+    //this symbols are not drawn but the show line breaks. Number of lines = lineDelimiterSymbols.size()
+    private ArrayList<Integer> lineDelimiterSymbols = new ArrayList<Integer>();
+
+    public TextElement(StructuredEditorModel model) {
+        this(model, null);
+    }
 
     public TextElement(StructuredEditorModel model, String text) {
+        this(model, text, true);
+    }
+
+    public TextElement(StructuredEditorModel model, String text, boolean singleLine) {
         super(model);
 
-        setHeight(1);
-
-        addPropertyChangeListener("text", new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent evt) {
-                updateLines();
-                setHeight(countHeight());
-                setWidth(countWidth());
-            }
-        });
+        this.singleLine = singleLine;
 
         setText(text);
     }
 
-
-    protected List<String> getLines() {
-        return lines;
+    public boolean isSingleLine() {
+        return singleLine;
     }
 
     protected void updateLines() {
-        try {
-            if (text != null) {
-                lines = Arrays.asList(text.split("\n", -1));
-                int i = 0;
-                while (i < lines.size()) {
-                    String str = lines.get(i);
-                    if (str.length() > LINE_LENGTH) {
-                        String str1 = str.substring(0, LINE_LENGTH);
-                        int posSpace = str1.lastIndexOf(' ');
-                        if (posSpace > -1) {
-                            str1 = str1.substring(0, posSpace);
-                        } else
-                            posSpace = LINE_LENGTH - 1;
-                        String str2 = str.substring(posSpace + 1);
-                        lines.set(i, str1);
-                        lines.add(i + 1, str2);
-                    }
-                    i++;
-                }
-            } else {
-                lines = new ArrayList<String>();
-                lines.add("");
-            }
-        } catch (Exception e) {
-            System.out.println(e);
+        lineDelimiterSymbols.clear();
+
+        int last = -1;
+        lineDelimiterSymbols.add(-1);
+
+        if (text == null) {
+            lineDelimiterSymbols.add(0);
+            return;
         }
+
+        if (singleLine) {
+            lineDelimiterSymbols.add(text.length());
+            return;
+        }
+
+        int length = text.length();
+
+        while (true) {
+            last = text.indexOf('\n', last + 1);
+            if (last == -1)
+                break;
+
+            lineDelimiterSymbols.add(last);
+        }
+
+        lineDelimiterSymbols.add(length);
     }
 
     public void setTextProperties(TextProperties tp) {
@@ -89,75 +83,43 @@ public class TextElement extends VisibleElement {
         repaint();
     }
 
+    public int getLinesCount() {
+        return lineDelimiterSymbols.size() - 1;
+    }
+
+    public String getLine(int index) {
+        if (text == null)
+            return "";
+
+        int lineStart = lineDelimiterSymbols.get(index) + 1;
+        return text.substring(lineStart, lineDelimiterSymbols.get(index + 1));
+    }
+
+    public int getLineFirstIndex(int index) {
+        return lineDelimiterSymbols.get(index) + 1;
+    }
+
+    public int getLineLastIndex(int index) {
+        return lineDelimiterSymbols.get(index + 1) - 1;
+    }
+
     public int countWidth() {
-        if (isEmptyText())
-            return emptyString.length();
-        else {
-            int maxLen = 0;
-            for (Object o : lines) {
-                int len = ((String) o).length();
-                if (len > maxLen)
-                    maxLen = len;
-            }
-            return maxLen;
+        int lines = getLinesCount();
+        int max = 0;
+        for (int i = 0; i < lines; i++) {
+            int len = getLine(i).length();
+            if (max < len)
+                max = len;
         }
 
-    }
-
-    public int countHeight() {
-        if (isEmptyText())
-            return 1;
-        else
-            return lines.size();
-    }
-
-    public TextElement(StructuredEditorModel model) {
-        this(model, null);
-    }
-
-
-    public void setEmptyString(String emptyString) {
-        this.emptyString = emptyString;
-        setWidth(countWidth());
-    }
-
-    @Override
-    public void processMouseEvent(MouseEvent evt) {
-        /*TextPosition position = getAbsolutePosition();
-        int x = position.getColumn();
-        int y = position.getLine() + 1;*/
-
-        if (evt.getClickCount() >= 1) {
-            getModel().setFocusedElement(this);
-        }
-
+        return max;
     }
 
     public void drawElement(int x0, int y0, Display d) {
-        //drawText("\u0421\u0430\u043c\u044b\u0435.",nullTextProperties,x0,y0,d);
-        if (isEmptyText())
-            drawText(emptyString, nullTextProperties, x0, y0, d);
-        else
-            drawText(textProperties, x0, y0, d);
-    }
+        int lines = getLinesCount();
 
-    public boolean isEmpty() {
-        return (text == null || text.equals(""));
-    }
-
-    private void drawText(TextProperties textProperties, int x0, int y0, Display d) {
-        int y, i = 0;
-
-        for (Object str : lines) {
-            y = y0 + i;
-            d.drawString((String) str, x0, y, textProperties);
-            i++;
-        }
-
-    }
-
-    private void drawText(String text, TextProperties textProperties, int x0, int y0, Display d) {
-        d.drawString(text, x0, y0, textProperties);
+        for (int i = 0; i < lines; i++)
+            d.drawString(getLine(i), x0, y0 + i, textProperties);
     }
 
     public String getText() {
@@ -167,28 +129,12 @@ public class TextElement extends VisibleElement {
     public void setText(String text) {
         String oldText = this.text;
         this.text = text;
-        pcs.firePropertyChange("text", oldText, text);
-        /*StructuredEditorUI ui = getModel().getUI();
-        if (ui != null)
-            ui.redrawEditor();
-        else*/
-        repaint();
-    }
 
-    public void forcedSetText(String text) {
-        this.text = text;
         updateLines();
+        setHeight(getLinesCount());
         setWidth(countWidth());
-        setHeight(countHeight());
 
-        /*StructuredEditorUI ui = getModel().getUI();
-        if (ui != null)
-            ui.redrawEditor();
-        else*/
-        repaint();
+        pcs.firePropertyChange("text", oldText, text);
     }
 
-    public boolean isEmptyText() {
-        return text == null || text.equals("");
-    }
 }

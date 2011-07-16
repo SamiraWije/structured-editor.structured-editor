@@ -1,13 +1,20 @@
 package ru.ipo.structurededitor.view.editors;
 
+import ru.ipo.structurededitor.actions.VisibleElementAction;
 import ru.ipo.structurededitor.controller.FieldMask;
 import ru.ipo.structurededitor.view.StructuredEditorModel;
-import ru.ipo.structurededitor.view.elements.ComboBoxTextEditorElement;
+import ru.ipo.structurededitor.view.autocomplete.AutoCompleteElement;
+import ru.ipo.structurededitor.view.elements.AutoCompleteTextElement;
+import ru.ipo.structurededitor.view.elements.ContainerElement;
+import ru.ipo.structurededitor.view.elements.TextElement;
+import ru.ipo.structurededitor.view.elements.VisibleElement;
 
+import javax.swing.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by IntelliJ IDEA.
@@ -17,79 +24,110 @@ import java.lang.reflect.Field;
  */
 public class EnumEditor extends FieldEditor {
 
-    //private ComboBoxTextEditorElement<Enum<?>> EnumSelectionElement;
-    //private ContainerElement container;
+    private VisibleElementAction selectOtherValueAction = new VisibleElementAction("Выбрать другой элемент", "properties.png", KeyStroke.getKeyStroke("control SPACE")) { //TODO set normal text
+        @Override
+        public void run(StructuredEditorModel model) {
+            setValue(null);
+            updateElement();
+
+            ContainerElement element = (ContainerElement) getElement();
+
+            model.moveCaretToElement(element);
+
+            ((AutoCompleteTextElement) element.getSubElement()).popup();
+        }
+    };
+
+    private VisibleElementAction removeValueAction = new VisibleElementAction("Очистить выбор", "delete.png", KeyStroke.getKeyStroke("control DELETE")) { //TODO set normal text
+        @Override
+        public void run(StructuredEditorModel model) {
+            setValue(null);
+            updateElement();
+            model.moveCaretToElement(getElement());
+        }
+    };
+
+    private final PropertyChangeListener selectionListener = new PropertyChangeListener() {
+        @Override
+        public void propertyChange(PropertyChangeEvent evt) {
+            ContainerElement element = (ContainerElement) getElement();
+            Object selectedValue = ((AutoCompleteTextElement) element.getSubElement()).getSelectedValue();
+            setValue(selectedValue);
+            updateElement();
+            getModel().moveCaretToElement(getElement());
+        }
+    };
 
     public EnumEditor(Object o, String fieldName, FieldMask mask, StructuredEditorModel model) {
-        super(o, fieldName, mask, model);
-        ComboBoxTextEditorElement<Enum<?>> EnumSelectionElement = createEnumSelectionElement(model);
+        super(o, fieldName, mask, true, model);
+
         setModificationVector(model.getModificationVector());
-        //container = new ContainerElement(model, EnumSelectionElement);
-        Field[] possibleValues = new Field[20];
-        PropertyDescriptor pd;
-        Class<? extends Enum> eclass;
-        try {
 
+        ContainerElement element = new ContainerElement(model, createInnerElement());
 
-            if (mask != null) {
-                eclass = (Class<? extends Enum>) (mask.getValueClass(getFieldType()));
-
-            } else {
-                eclass = (Class<? extends Enum>) (getFieldType());
-            }
-            possibleValues = eclass.getFields();
-        } catch (Exception e) {
-            throw new Error("Fail in EnumEditor.createElement()");
-        }
-        //Method[] possibleMethods = getObject().getClass().getMethods();
-        String const_name;
-        for (Field pv : possibleValues) {
-            if (pv.isEnumConstant()) {
-                const_name = pv.getName();
-                EnumSelectionElement.addValue(const_name, "", Enum.valueOf(eclass, const_name));
-            }
-        }
-        setElement(EnumSelectionElement);
-        updateElement();
+        setElement(element);
     }
 
+    private VisibleElement createInnerElement() {
+        Object value = getValue();
+
+        if (value == null) {
+
+            List<AutoCompleteElement> completionElements;
+            try {
+                completionElements = createCompletionElements();
+            } catch (Exception e) {
+                throw new Error("Failed to create enum editor");
+            }
+
+            AutoCompleteTextElement element = new AutoCompleteTextElement(getModel(), completionElements);
+
+            element.addPropertyChangeListener("selectedValue", selectionListener);
+
+            return element;
+        } else {
+            TextElement element = new TextElement(getModel(), value.toString()); //TODO set normal text
+
+            element.addAction(selectOtherValueAction);
+            element.addAction(removeValueAction);
+
+            return element;
+        }
+    }
+
+    private List<AutoCompleteElement> createCompletionElements() throws Exception {
+        Class<?> fieldType = getMaskedFieldType();
+        //call values() method to obtain array of values
+        Method valuesMethod = fieldType.getMethod("values");
+        Enum[] values = (Enum[]) valuesMethod.invoke(null);
+
+        List<AutoCompleteElement> elements = new ArrayList<AutoCompleteElement>();
+
+        for (final Enum value : values)
+            elements.add(new AutoCompleteElement() {
+                @Override
+                public Object getValue() {
+                    return value;
+                }
+
+                @Override
+                public String getShortcut() {
+                    return value.toString();
+                }
+
+                @Override
+                public String getDescription() {
+                    return "Нету описания";
+                }
+            });
+
+        return elements;
+    }
 
     @Override
     protected void updateElement() {
-        @SuppressWarnings("unchecked")
-        ComboBoxTextEditorElement<Enum<?>> EnumSelectionElement = (ComboBoxTextEditorElement<Enum<?>>) getElement();
-        EnumSelectionElement.forcedSetValue((Enum<?>) getValue());
-    }
-
-    private ComboBoxTextEditorElement<Enum<?>> createEnumSelectionElement(final StructuredEditorModel model) {
-        final ComboBoxTextEditorElement<Enum<?>> res = new ComboBoxTextEditorElement<Enum<?>>(model);
-        res.setEmptyString("[Выберите вариант]");
-        res.addPropertyChangeListener("text", new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent evt) {
-                Enum<?> value = res.getValue();
-                //System.out.println("enum value =" + value);
-                //if (value != null) {
-                setValue(value);
-                //}
-
-            }
-        });
-        /*res.addPropertyChangeListener("refresh", new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent evt) {
-                VisibleElement.RefreshProperties rp = (VisibleElement.RefreshProperties) evt.getNewValue();
-                setEmpty(rp.getEmpty());
-                setObject(rp.getObject());
-                Enum<?> val = (Enum<?>) getValue();
-                if (val == null)
-                    res.setText("");
-                else
-                    res.setValue(val);
-                res.resetPosition();
-                res.resumeRefresh();
-
-            }
-        });*/
-        return res;
+        ContainerElement element = (ContainerElement) getElement();
+        element.setSubElement(createInnerElement());
     }
 
 }

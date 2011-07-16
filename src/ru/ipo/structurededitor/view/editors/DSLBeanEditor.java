@@ -1,19 +1,19 @@
 package ru.ipo.structurededitor.view.editors;
 
+import ru.ipo.structurededitor.actions.VisibleElementAction;
 import ru.ipo.structurededitor.controller.FieldMask;
 import ru.ipo.structurededitor.model.DSLBean;
 import ru.ipo.structurededitor.model.DSLBeanParams;
 import ru.ipo.structurededitor.view.EditorRenderer;
 import ru.ipo.structurededitor.view.StructuredEditorModel;
-import ru.ipo.structurededitor.view.elements.ComboBoxTextEditorElement;
-import ru.ipo.structurededitor.view.elements.ContainerElement;
-import ru.ipo.structurededitor.view.elements.TextElement;
-import ru.ipo.structurededitor.view.events.ComboBoxSelectListener;
+import ru.ipo.structurededitor.view.autocomplete.AutoCompleteElement;
+import ru.ipo.structurededitor.view.elements.*;
 
-import javax.swing.text.MaskFormatter;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
+import javax.swing.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -22,211 +22,141 @@ import java.util.List;
  * Date: 03.01.2010
  * Time: 23:49:11
  */
-public class DSLBeanEditor extends FieldEditor {
+public class DSLBeanEditor extends FieldEditor implements PropertyChangeListener {
 
-    private TextElement innerElement;
-    //private ContainerElement container;
-    private StructuredEditorModel model;
-    boolean isAbstract;
+    private final boolean isAbstract;
 
-    /**
-     * Returns text that is shown when value is null
-     * @return string to display when value is null
-     */
-    private String getEmptyText() {
-        Class<?> fieldType = getFieldType();
+    private final VisibleElementAction removeAction =
+            new VisibleElementAction("Удалить объект", "delete.png", KeyStroke.getKeyStroke("control DELETE")) { //TODO get text from data
+                @Override
+                public void run(StructuredEditorModel model) {
+                    setValue(null);
+                    updateElement(); //don't know why set does not do update
+                }
+            };
 
-        FieldMask mask = getMask();
-        if (mask != null)
-            fieldType = mask.getValueClass(fieldType);
+    private final VisibleElementAction createBeanAction = new VisibleElementAction("Создать объект", "add.png", KeyStroke.getKeyStroke("ENTER")) { //TODO get text from data
+        @Override
+        public void run(StructuredEditorModel model) {
+            initializeNewBean(getMaskedFieldType());
+        }
+    };
 
-        String result = fieldType.getSimpleName();
-
-        DSLBeanParams annotation = fieldType.getAnnotation(DSLBeanParams.class);
-        if (annotation != null) {
-            String description = annotation.description();
-            if (description != null)
-                result = description;
+    private void initializeNewBean(Class<?> beanType) {
+        DSLBean bean;
+        try {
+            bean = (DSLBean) beanType.newInstance();
+        } catch (Exception e) {
+            throw new Error("Failed to instantiate bean");
         }
 
-        return "[" + result + "]";
-    }
-
-    private void setNonAbstractInnerElement() {
-        final Class<?> beanType;
-        FieldMask mask = getMask();
-        if (mask != null)
-            beanType = mask.getValueClass(getFieldType());
-        else
-            beanType = getFieldType();
-
-        innerElement.addKeyListener(new KeyListener() {
-            public void keyTyped(KeyEvent e) {
-                if (Character.isLetterOrDigit(e.getKeyChar())) {
-                    try {
-                        DSLBean o;
-                        o = (DSLBean) beanType.newInstance();
-                        setValue(o);
-                        updateElement();
-                    } catch (Exception e1) {
-                        throw new Error("Failed to instantiate bean: " + e1);
-                    }
-                }
-            }
-
-            public void keyPressed(KeyEvent keyEvent) {
-            }
-
-            public void keyReleased(KeyEvent keyEvent) {
-            }
-        });
+        setValue(bean);
+        updateElement(); //don't know why set does not do update
     }
 
     public DSLBeanEditor(Object o, String fieldName, FieldMask mask, StructuredEditorModel model) {
-        super(o, fieldName, mask, model);
-        this.model = model;
-
+        super(o, fieldName, mask, true, model);
         setModificationVector(model.getModificationVector());
 
-        if (mask == null) {
-            isAbstract = Modifier.isAbstract(getFieldType().getModifiers());
-        } else {
-            isAbstract = Modifier.isAbstract(mask.getValueClass(getFieldType()).getModifiers());
-        }
+        isAbstract = Modifier.isAbstract(getMaskedFieldType().getModifiers());
 
-        final ComboBoxTextEditorElement<Class<? extends DSLBean>> beanClassSelectionElement;
-        if (isAbstract) {
-            beanClassSelectionElement = createBeanSelectionElement(model);
-            innerElement = beanClassSelectionElement;
-        } else {
-            beanClassSelectionElement = null;
-            innerElement = new TextElement(model, "");
-            innerElement.setEmptyString(getEmptyText());
-        }
-
-        final ContainerElement container = new ContainerElement(model, innerElement);
-        if (isAbstract) {
-            setComboBoxList();
-        } else {
-            setNonAbstractInnerElement();
-        }
-        container.addKeyListener(new KeyListener() {
-            public void keyTyped(KeyEvent e) {
-                if ((e.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK) != 0 && e.getKeyChar() == '\u0001') { //Ctrl+a
-                    if (getValue() != null) {
-                        container.setSubElement(innerElement);
-                        setValue(null);
-                        e.consume();
-                    }
-                }
-            }
-
-
-            public void keyPressed(KeyEvent e) {
-            }
-
-            public void keyReleased(KeyEvent e) {
-            }
-        });
-
-        setElement(container);
-        updateElement();
-
-
+        ContainerElement ce = new ContainerElement(model, createInnerComponent());
+        setElement(ce);
     }
 
+    private VisibleElement createInnerComponent() {
+        Object value = getValue();
 
-    private void setComboBoxList() {
-        ComboBoxTextEditorElement<Class<? extends DSLBean>> beanClassSelectionElement =
-                (ComboBoxTextEditorElement<Class<? extends DSLBean>>) innerElement;
-        List<Class<? extends DSLBean>> classes;
-        FieldMask mask = getMask();
-        if (mask != null)
-            classes = model.getBeansRegistry().
-                    getAllSubclasses((Class<? extends DSLBean>) mask.getValueClass(getFieldType()), true);
-        else
-            classes = model.getBeansRegistry().getAllSubclasses((Class<? extends DSLBean>) getFieldType(), true);
-        for (Class<? extends DSLBean> clazz : classes) {
-            DSLBeanParams beanParams;
-            beanParams = clazz.getAnnotation(DSLBeanParams.class);
-            //String str;
-            if (beanParams == null) {
-                beanClassSelectionElement.addValue(clazz.getSimpleName(), "", clazz);
-            } else {
-                beanClassSelectionElement.addValue(beanParams.shortcut(), beanParams.description(), clazz);
-            }
-
+        if (value != null) {
+            EditorRenderer renderer = new EditorRenderer(getModel(), (DSLBean) value);
+            VisibleElement element = renderer.getRenderResult();
+            element.addAction(removeAction);
+            return element;
+        } else if (isAbstract) {
+            return createCompletionElement();
+        } else {
+            return createNullElement();
         }
     }
 
-    private ComboBoxTextEditorElement<Class<? extends DSLBean>> createBeanSelectionElement(final StructuredEditorModel model) {
-        final ComboBoxTextEditorElement<Class<? extends DSLBean>> res = new ComboBoxTextEditorElement<Class<? extends DSLBean>>(model);
-        res.setEmptyString(getEmptyText());
+    private VisibleElement createNullElement() {
+        TextElement element = new TextElement(getModel(), "[пусто]"); //TODO get text from data
 
-        res.addComboBoxSelectListener(new ComboBoxSelectListener() {
-            public void itemSelected() {
-                Class<? extends DSLBean> value = res.getValue();
-                if (value != null) {
-                    setNewBean(value, model);
-                }
-            }
-        });
-        res.addKeyListener(new KeyListener() {
-            public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                    Class<? extends DSLBean> value = res.getValue();
-                    if (value != null) {
-                        setNewBean(value, model);
-                        e.consume();
-                    }
-                }
+        element.addAction(createBeanAction);
 
-            }
-
-            public void keyTyped(KeyEvent e) {
-            }
-
-            public void keyReleased(KeyEvent e) {
-            }
-        });
-        return res;
+        return element;
     }
 
-    private void setNewBean(Class<? extends DSLBean> beanClass, StructuredEditorModel model) {
-        try {
-            DSLBean bean = beanClass.newInstance();
-            setValue(bean);
-            updateElement();
-        } catch (Exception e) {
-            throw new Error("Failed to initialize DSL Bean");
-        }
+    private VisibleElement createCompletionElement() {
+        AutoCompleteTextElement element = new AutoCompleteTextElement(getModel(), getAutoCompleteElements());
+
+        element.addPropertyChangeListener("selectedValue", this);
+
+        return element;
     }
 
     @Override
     protected void updateElement() {
-        if (model == null)
-            return;
-        final ContainerElement container = (ContainerElement) getElement();
-
-        final ComboBoxTextEditorElement<Class<? extends DSLBean>> beanClassSelectionElement;
-
-        if (isAbstract) {
-            beanClassSelectionElement =
-                    (ComboBoxTextEditorElement<Class<? extends DSLBean>>) innerElement;
-        } else {
-            beanClassSelectionElement = null;
-        }
-
-        Object value = getValue();
-        if (value == null) {
-            if (beanClassSelectionElement != null)
-                beanClassSelectionElement.setText("");
-            container.setSubElement(innerElement);
-        } else {
-            EditorRenderer renderer = new EditorRenderer(model, (DSLBean) value);
-            container.setSubElement(renderer.getRenderResult());
-        }
-        // model.setFocusedElementAndCaret(container);
+        VisibleElement innerComponent = createInnerComponent();
+        ((ContainerElement) getElement()).setSubElement(innerComponent);
+        getModel().moveCaretToElement(innerComponent);
     }
 
+    private List<AutoCompleteElement> getAutoCompleteElements() {
+        Class<? extends DSLBean> fieldType = getMaskedFieldType().asSubclass(DSLBean.class);
+
+        List<Class<? extends DSLBean>> subclasses = getModel().getBeansRegistry().getAllSubclasses(fieldType, true);
+
+        List<AutoCompleteElement> elements = new ArrayList<AutoCompleteElement>(subclasses.size());
+
+        for (final Class<? extends DSLBean> subclass : subclasses) {
+            elements.add(new AutoCompleteElement() {
+                @Override
+                public Object getValue() {
+                    return subclass;
+                }
+
+                @Override
+                public String getShortcut() {
+                    return getBeanShortcut(subclass);
+                }
+
+                @Override
+                public String getDescription() {
+                    return getBeanDescription(subclass);
+                }
+            });
+        }
+
+        return elements;
+    }
+
+    private static String getBeanShortcut(Class<? extends DSLBean> beanClass) {
+        DSLBeanParams annotation = beanClass.getAnnotation(DSLBeanParams.class);
+        if (annotation == null || annotation.shortcut() == null)
+            return beanClass.getSimpleName();
+        else
+            return annotation.shortcut();
+    }
+
+    private static String getBeanDescription(Class<? extends DSLBean> beanClass) {
+        DSLBeanParams annotation = beanClass.getAnnotation(DSLBeanParams.class);
+        if (annotation == null || annotation.description() == null)
+            return "";
+        else
+            return annotation.description();
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        if (evt.getPropertyName().equals("selectedValue")) {
+            Class<?> selectedBeanClass = (Class<?>) evt.getNewValue();
+            if (selectedBeanClass != null)
+                initializeNewBean(selectedBeanClass);
+            else {
+                setValue(null);
+                updateElement();
+            }
+        }
+    }
 }

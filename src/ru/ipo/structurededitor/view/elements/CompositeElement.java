@@ -6,7 +6,6 @@ import ru.ipo.structurededitor.view.TextPosition;
 import ru.ipo.structurededitor.view.TextProperties;
 
 import java.awt.*;
-import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
@@ -68,26 +67,6 @@ public class CompositeElement extends VisibleElement {
         reposition();
     }
 
-    public boolean isEmpty() {
-        for (PositionedElement el : elements) {
-            if (!el.element.isEmpty())
-                return false;
-        }
-        return true;
-    }
-
-    @Override
-    public void processMouseEvent(MouseEvent evt) {
-        for (PositionedElement el : elements) {
-            TextPosition position = el.element.getAbsolutePosition();
-            int x = position.getColumn();
-            int y = position.getLine();
-            if (evt.getX() >= x && evt.getX() < x + el.element.getWidth()
-                    && evt.getY() >= y && evt.getY() < y + el.element.getHeight())
-                el.element.processMouseEvent(evt);
-        }
-    }
-
     public void setElements(VisibleElement... visibleElementList) {
         setElements(Arrays.asList(visibleElementList));
     }
@@ -97,6 +76,7 @@ public class CompositeElement extends VisibleElement {
         for (PositionedElement element : elements) {
             element.element.removePropertyChangeListener("width", sizeChangeListener);
             element.element.removePropertyChangeListener("height", sizeChangeListener);
+            element.element.setParent(null);
         }
 
         elements.clear();
@@ -110,6 +90,8 @@ public class CompositeElement extends VisibleElement {
         }
 
         reposition();
+
+        getModel().testFocus();
     }
 
     public void add(VisibleElement element) {
@@ -154,15 +136,20 @@ public class CompositeElement extends VisibleElement {
 
     public void remove(VisibleElement element) {
         for (int i = 0; i < elements.size(); i++)
-            if (elements.get(i).element == element)
+            if (elements.get(i).element == element) {
                 remove(i);
+                return;
+            }
     }
 
     public void remove(int index) {
         PositionedElement removed = elements.remove(index);
         removed.element.removePropertyChangeListener("width", sizeChangeListener);
         removed.element.removePropertyChangeListener("height", sizeChangeListener);
+        removed.element.setParent(null);
         reposition();
+
+        getModel().testFocus();
     }
 
     public VisibleElement get(int index) {

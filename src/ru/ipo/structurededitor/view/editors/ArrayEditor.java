@@ -1,332 +1,208 @@
 package ru.ipo.structurededitor.view.editors;
 
+import ru.ipo.structurededitor.actions.VisibleElementAction;
 import ru.ipo.structurededitor.controller.ArrayFieldMask;
 import ru.ipo.structurededitor.controller.EditorsRegistry;
-import ru.ipo.structurededitor.controller.Modification;
-import ru.ipo.structurededitor.controller.ModificationVector;
+import ru.ipo.structurededitor.controller.FieldMask;
+import ru.ipo.structurededitor.controller.MaskComposition;
 import ru.ipo.structurededitor.model.DSLBean;
 import ru.ipo.structurededitor.view.StructuredEditorModel;
-import ru.ipo.structurededitor.view.elements.ArrayElement;
 import ru.ipo.structurededitor.view.elements.CompositeElement;
+import ru.ipo.structurededitor.view.elements.ContainerElement;
+import ru.ipo.structurededitor.view.elements.TextElement;
 import ru.ipo.structurededitor.view.elements.VisibleElement;
 
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.beans.PropertyDescriptor;
+import javax.swing.*;
 import java.lang.reflect.Array;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.Vector;
+import java.util.ArrayList;
 
 /**
  * Created by IntelliJ IDEA.
  * User: oleg
  * Date: 29.07.2010
  * Time: 13:17:50
- * To change this template use File | Settings | File Templates.
  */
 public class ArrayEditor extends FieldEditor {
-    private boolean singleLined = false;
 
-    public ArrayEditor(Object o, String fieldName, CompositeElement.Orientation orientation, char spaceChar,
-                       boolean singleLined, final StructuredEditorModel model) {
-        super(o, fieldName, null, model);
-        this.orientation = orientation;
-        this.spaceChar = spaceChar;
-        this.singleLined = singleLined;
-        final ArrayElement arrayElement = new ArrayElement(model, orientation, spaceChar);
+    //implementation note: here in this editor values in array are always parallel to elements in composite element
+
+    //TODO add actions to swap array elements
+
+    private final VisibleElementAction setNullValueAction = new VisibleElementAction("Удалить массив", "delete.png", KeyStroke.getKeyStroke("control DELETE")) { //TODO set normal text
+        @Override
+        public void run(StructuredEditorModel model) {
+            setValue(null);
+            updateElement();
+
+            getModel().moveCaretToElement(getElement());
+        }
+    };
+
+    public ArrayEditor(Object o, String fieldName, FieldMask mask, CompositeElement.Orientation orientation, char spaceChar, final StructuredEditorModel model) {
+        super(o, fieldName, mask, model);
+
         setModificationVector(model.getModificationVector());
 
-        arrayElement.addKeyListener(new KeyListener() {
-            public void keyTyped(KeyEvent e) {
+        final CompositeElement arrayElement = new CompositeElement(model, orientation, spaceChar);
 
-            }
+//        addAddAction(arrayElement);
 
-            public void buttonDelete() {
-                try {
-                    ModificationVector modificationVector = getModificationVector();
-                    int countItems = arrayElement.getChildrenCount();
-                    if (countItems > 1) {
-
-                        VisibleElement itemToDelete;
-
-                        itemToDelete = model.getFocusedElement();
-                        while (!itemToDelete.getParent().equals(arrayElement))
-                            itemToDelete = itemToDelete.getParent();
-
-                        int oldIndex = arrayElement.getChildIndex(itemToDelete);
-                        editors.remove(oldIndex);
-                        arrayElement.remove(oldIndex);
-
-                        if (oldIndex == countItems - 1) {
-                            int newIndex = oldIndex - 1;
-                            model.setFocusedElementAndCaret(arrayElement.getChild(newIndex));
-                        }
-
-
-                        //Deleting the array item
-                        PropertyDescriptor pd = new PropertyDescriptor(getFieldName(), getObject().getClass());
-                        Method wm = pd.getWriteMethod();
-                        Method rm = pd.getReadMethod();
-                        Object arr = reserveOldArr(rm.invoke(getObject()));
-                        Object oldArr = reserveOldArr(arr);
-
-                        for (int i = oldIndex; i <= countItems - 2; i++) {
-                            Object o = Array.get(arr, i + 1);
-                            if (o != null) {
-                                Array.set(arr, i, o);
-                            } else {
-                                arr = delItem(arr, i);
-                            }
-                            editors.get(i).setMask(new ArrayFieldMask(i + 1));
-                            wm.invoke(getObject(), arr);
-                        }
-                        arr = resizeArray(arr, countItems - 1);
-                        wm.invoke(getObject(), arr);
-                        if (oldIndex < countItems - 1) {
-                            model.setFocusedElementAndCaret(arrayElement.get(oldIndex));
-
-                        }
-                        if (modificationVector != null)
-                            modificationVector.add(new Modification((DSLBean) getObject(), getFieldName(), oldArr, arr, null));
-
-                    }
-                } catch (Exception e) {
-                    throw new Error("Failed to delete an array item: ", e);
-                }
-            }
-
-
-            public void buttonInsert() {
-                try {
-                    ModificationVector modificationVector = getModificationVector();
-                    int countItems = arrayElement.getChildrenCount();
-                    //Adding a new element
-                    VisibleElement currentItem = model.getFocusedElement();
-                    while (!currentItem.getParent().equals(arrayElement))
-                        currentItem = currentItem.getParent();
-                    int oldIndex = arrayElement.getChildIndex(currentItem);
-                    FieldEditor ed = createEditorInstance(oldIndex, model);
-                    VisibleElement newItem = ed.getElement();
-                    arrayElement.add(newItem, oldIndex);
-                    editors.insertElementAt(ed, oldIndex);
-
-                    //Inserting the array item
-                    PropertyDescriptor pd = new PropertyDescriptor(getFieldName(), getObject().getClass());
-                    Method wm = pd.getWriteMethod();
-                    Method rm = pd.getReadMethod();
-                    Object arr = rm.invoke(getObject());
-                    Object oldArr = reserveOldArr(arr);
-                    arr = resizeArray(arr, countItems + 1);
-
-                    for (int i = countItems; i >= oldIndex + 1; i--) {
-                        Object o = Array.get(arr, i - 1);
-                        if (o != null) {
-                            Array.set(arr, i, o);
-                        } else {
-                            arr = delItem(arr, i);
-
-                        }
-                        wm.invoke(getObject(), arr);
-                        editors.get(i).setMask(new ArrayFieldMask(i - 1));
-                    }
-                    arr = delItem(arr, oldIndex);
-                    wm.invoke(getObject(), arr);
-                    editors.get(oldIndex).updateElement();
-                    model.setFocusedElementAndCaret(newItem);
-                    if (modificationVector != null)
-                        modificationVector.add(new Modification((DSLBean) getObject(), getFieldName(), oldArr, arr,
-                                null));
-
-                } catch (Exception e) {
-                    throw new Error("Failed to insert an array item: ", e);
-                }
-            }
-
-            public void buttonEnter() {
-                try {
-                    ModificationVector modificationVector = getModificationVector();
-                    int countItems = arrayElement.getChildrenCount();
-                    //Adding a new element
-                    VisibleElement currentItem;
-                    currentItem = model.getFocusedElement();
-                    while (!currentItem.getParent().equals(arrayElement))
-                        currentItem = currentItem.getParent();
-                    int oldIndex = arrayElement.getChildIndex(currentItem);
-                    FieldEditor ed = createEditorInstance(oldIndex + 1, model);
-                    editors.add(oldIndex + 1, ed);
-                    VisibleElement newItem = ed.getElement();
-                    arrayElement.add(newItem, oldIndex + 1);
-                    VisibleElement nextItem = arrayElement.get(oldIndex + 1);
-
-                    //Inserting the array item
-                    PropertyDescriptor pd = new PropertyDescriptor(getFieldName(), getObject().getClass());
-                    Method wm = pd.getWriteMethod();
-                    Method rm = pd.getReadMethod();
-                    Object arr = rm.invoke(getObject());
-                    Object oldArr = reserveOldArr(arr);
-                    arr = resizeArray(arr, countItems + 1);
-
-                    for (int i = countItems; i >= oldIndex + 2; i--) {
-                        Object o = Array.get(arr, i - 1);
-                        if (o != null) {
-                            Array.set(arr, i, o);
-
-                        } else {
-                            arr = delItem(arr, i);
-                        }
-                        wm.invoke(getObject(), arr);
-                        editors.get(i).setMask(new ArrayFieldMask(i - 1));
-                    }
-                    arr = delItem(arr, oldIndex + 1);
-                    wm.invoke(getObject(), arr);
-                    editors.get(oldIndex + 1).updateElement();
-                    if (modificationVector != null)
-                        modificationVector.add(new Modification((DSLBean) getObject(), getFieldName(), oldArr, arr,
-                                null));
-                    model.setFocusedElementAndCaret(nextItem);
-                } catch (Exception e) {
-                    throw new Error("Failed to insert an array item: ", e);
-                }
-
-            }
-
-            public void keyPressed(KeyEvent e) {
-                boolean ctrl = (e.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK) != 0;
-                switch (e.getKeyCode()) {
-                    case KeyEvent.VK_BACK_SPACE:
-                        /*if (ctrl)
-                         {
-                              buttonBackspace();
-                              e.consume();
-                         }
-                        break;*/
-
-                    case KeyEvent.VK_DELETE:
-                        //if (ctrl)
-                    {
-                        buttonDelete();
-                        e.consume();
-                    }
-                    break;
-                    case KeyEvent.VK_INSERT:
-                        buttonInsert();
-                        e.consume();
-                        break;
-                    case KeyEvent.VK_ENTER:
-                        buttonEnter();
-                        e.consume();
-                        break;
-                }
-            }
-
-            public void keyReleased(KeyEvent e) {
-            }
-        });
         setElement(arrayElement);
+
         updateElement();
     }
 
-    //private ArrayElement arrayElement;
-    private Vector<FieldEditor> editors = new Vector<FieldEditor>();
+    /*private void addAddAction(VisibleElement arrayElement) {
+        VisibleElementAction addArrayElementAction = new VisibleElementAction("Добавить элемент массива", "add.png", KeyStroke.getKeyStroke("ENTER")) { //TODO add normal text
+            @Override
+            public void run(StructuredEditorModel model) {
+                addElementToArray(-1);
 
-    private CompositeElement.Orientation orientation;
-    //private Class<? extends FieldEditor> EditorClass;
-    private char spaceChar;
-
-    private FieldEditor createEditorInstance(int index, StructuredEditorModel model)
-            throws NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
-        final EditorsRegistry reg;
-        reg = model.getEditorsRegistry();
-        return reg.getEditor((Class<? extends DSLBean>) getObject().getClass(), getFieldName(), getObject(),
-                new ArrayFieldMask(index), singleLined, model);
-
-    }
-
-    /**
-     * Reallocates an array with a new size, and copies the contents
-     * of the old array to the new array.
-     *
-     * @param oldArray the old array, to be reallocated.
-     * @param newSize  the new array size.
-     * @return A new array with the same contents.
-     */
-    public static Object resizeArray(Object oldArray, int newSize) {
-        try {
-            int oldSize = java.lang.reflect.Array.getLength(oldArray);
-            Class elementType = oldArray.getClass().getComponentType();
-            Object newArray = java.lang.reflect.Array.newInstance(
-                    elementType, newSize);
-            int preserveLength = Math.min(oldSize, newSize);
-            if (preserveLength > 0) {
-                System.arraycopy(oldArray, 0, newArray, 0, preserveLength);
+                int selectIndex = getElement().getChildrenCount() - 1;
+                getModel().moveCaretToElement(getElement().getChild(selectIndex));
             }
-            return newArray;
-        } catch (Exception e) {
-            System.out.println("Error in array resizing! " + e);
-        }
-        return null;
+        };
+
+        arrayElement.addAction(addArrayElementAction);
+    }*/
+
+    @SuppressWarnings({"SuspiciousSystemArraycopy"})
+    private void addElementToArray(int newIndex) {
+        Class<?> fieldType = getMaskedFieldType();
+        Class<?> componentType = fieldType.getComponentType();
+
+        //get value
+        Object value = getValue();
+        if (value == null)
+            value = Array.newInstance(componentType, 0);
+
+        //add element to the array
+        int length = Array.getLength(value);
+        Object newValue = Array.newInstance(componentType, 1 + length);
+
+//        if (newIndex < 0)
+//            newIndex += 1 + length;
+
+        System.arraycopy(value, 0, newValue, 0, newIndex);
+        System.arraycopy(value, newIndex, newValue, newIndex + 1, length - newIndex);
+
+        setValue(newValue);
+        updateElement();
     }
 
-    public static Object delItem(Object oldArray, int index) {
-        try {
-            int size = Array.getLength(oldArray);
-            Class elementType = oldArray.getClass().getComponentType();
-            Object newArray = Array.newInstance(
-                    elementType, size);
-            for (int i = 0; i < size; i++) {
-                Object o = Array.get(oldArray, i);
-                if (i != index && o != null)
-                    Array.set(newArray, i, o);
-            }
-            return newArray;
-        } catch (Exception e) {
-            System.out.println("Error in array resizing! " + e);
-        }
-        return null;
+    private FieldEditor createEditorInstance(int index) {
+        final EditorsRegistry reg = getModel().getEditorsRegistry();
+
+        return reg.getEditor(
+                (Class<? extends DSLBean>) getObject().getClass(),
+                getFieldName(),
+                getObject(),
+                MaskComposition.composeMasks(new ArrayFieldMask(index), getMask()),
+                true,
+                getModel()
+        );
     }
 
-    private Object reserveOldArr(Object arr) {
-        int countItems = Array.getLength(arr);
-        Class elementType = arr.getClass().getComponentType();
-        Object oldArr = java.lang.reflect.Array.newInstance(
-                elementType, countItems);
-        System.arraycopy(arr, 0, oldArr, 0, countItems);
-        return oldArr;
+    private VisibleElement createNullElement() {
+        TextElement nullElement = new TextElement(getModel(), "[Нет массива]"); //TODO set normal text
+
+        nullElement.addAction(new InsertArrayElementAction(0));
+
+        return nullElement;
     }
 
+    private VisibleElement createZeroElement() {
+        TextElement zeroElement = new TextElement(getModel(), "[Нет элементов массива]"); //TODO set normal text
+
+        zeroElement.addAction(new InsertArrayElementAction(0));
+        zeroElement.addAction(setNullValueAction);
+
+        return zeroElement;
+    }
 
     @Override
     protected void updateElement() {
-        ArrayElement arrayElement = (ArrayElement) getElement();
-        try {
-            Object val = getValue();
+        Object value = getValue();
 
-            if (val == null || Array.getLength(val) == 0) {
-                FieldEditor ed = createEditorInstance(0, arrayElement.getModel());
-                editors.add(ed);
-                arrayElement.add(ed.getElement());
-                //arrayElement.add(new TextElement(model,"Пустой массив"));
-                PropertyDescriptor pd = new PropertyDescriptor(getFieldName(), getObject().getClass());
-                Method wm = pd.getWriteMethod();
-                Object arr = Array.newInstance(pd.getPropertyType().getComponentType(), 1);
-                wm.invoke(getObject(), arr);
-            } else {
-                int count = arrayElement.getChildrenCount();
-                if (count > 0)
-                    for (int i = 0; i < count; i++)
-                        arrayElement.remove(0);
+        CompositeElement root = (CompositeElement) getElement();
 
+        if (value == null) {
+            root.setElements(createNullElement());
+            return;
+        }
 
-                for (int i = 0; i < Array.getLength(val); i++) {
-                    FieldEditor ed = createEditorInstance(i, arrayElement.getModel());
-                    editors.add(ed);
-                    arrayElement.add(ed.getElement());
-                }
-            }
+        int length = Array.getLength(value);
 
-        } catch (Exception e) {
-            System.out.println("Error in array updating! " + e);
+        if (length == 0) {
+            root.setElements(createZeroElement());
+            return;
+        }
+
+        ArrayList<VisibleElement> elements = new ArrayList<VisibleElement>(length);
+
+        for (int ind = 0; ind < length; ind++) {
+            FieldEditor editor = createEditorInstance(ind);
+            VisibleElement element = editor.getElement();
+            ContainerElement container = new ContainerElement(getModel(), element);
+
+            container.addAction(new DeleteArrayElementAction(ind));
+            container.addAction(new InsertArrayElementAction(ind + 1));
+
+            elements.add(container);
+        }
+
+        root.setElements(elements);
+    }
+
+    private class InsertArrayElementAction extends VisibleElementAction {
+
+        private int index;
+
+        public InsertArrayElementAction(int index) {
+            super("Вставить элемент массива", "add.png", KeyStroke.getKeyStroke("ENTER")); //TODO set normal text
+            this.index = index;
+        }
+
+        @Override
+        public void run(StructuredEditorModel model) {
+            addElementToArray(index);
+
+            getModel().moveCaretToElement(getElement().getChild(index));
         }
     }
+
+    private class DeleteArrayElementAction extends VisibleElementAction {
+
+        private int index;
+
+        public DeleteArrayElementAction(int index) {
+            super("Удалить элемент массива", "delete.png", KeyStroke.getKeyStroke("control DELETE")); //TODO set normal text
+            this.index = index;
+        }
+
+        @SuppressWarnings({"SuspiciousSystemArraycopy"})
+        @Override
+        public void run(StructuredEditorModel model) {
+            //delete element in the index
+            Class<?> fieldType = getMaskedFieldType();
+            Class<?> componentType = fieldType.getComponentType();
+
+            //get value
+            Object value = getValue();
+
+            //add element to the end
+            int length = Array.getLength(value);
+            Object newValue = Array.newInstance(componentType, -1 + length);
+
+            System.arraycopy(value, 0, newValue, 0, index);
+            System.arraycopy(value, index + 1, newValue, index, length - index - 1);
+
+            setValue(newValue);
+            updateElement();
+
+            int selectIndex = index == 0 ? 0 : index - 1;
+            getModel().moveCaretToElement(getElement().getChild(selectIndex));
+        }
+    }
+
 }

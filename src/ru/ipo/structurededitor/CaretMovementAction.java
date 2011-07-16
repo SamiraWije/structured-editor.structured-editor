@@ -2,7 +2,7 @@ package ru.ipo.structurededitor;
 
 import ru.ipo.structurededitor.view.StructuredEditorModel;
 import ru.ipo.structurededitor.view.TextPosition;
-import ru.ipo.structurededitor.view.VisibleElementsGraph;
+import ru.ipo.structurededitor.view.elements.VisibleElement;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -11,49 +11,55 @@ import java.awt.event.ActionEvent;
  * Created by IntelliJ IDEA. User: Ilya Date: 14.01.2010 Time: 22:20:40
  */
 public class CaretMovementAction extends AbstractAction {
-    /**
-     *
-     */
-    private static final long serialVersionUID = -8218572692421598416L;
 
-    private final VisibleElementsGraph.Direction dir;
+    public static enum Direction {
+        Up, Down, Left, Right,
+    }
+
+    private final Direction dir;
 
     /**
      * @param dir
      */
-    public CaretMovementAction(VisibleElementsGraph.Direction dir) {
+    public CaretMovementAction(Direction dir) {
         this.dir = dir;
     }
 
     public void actionPerformed(ActionEvent e) {
-        final StructuredEditorModel editorModel = ((StructuredEditor) e.getSource())
-                .getModel();
-        VisibleElementsGraph graph = new VisibleElementsGraph(editorModel
-                .getRootElement());
+        final StructuredEditorModel editorModel =
+                ((StructuredEditor) e.getSource()).getModel();
 
-        //VisibleElement neighbour = graph.getNeighbour(editorModel
-        //        .getFocusedElement(), dir);
-        int x = editorModel.getAbsoluteCaretX(), y = editorModel.getAbsoluteCaretY();
+        VisibleElement rootElement = editorModel.getRootElement();
+        TextPosition absolutePosition = rootElement.getAbsolutePosition();
+
+        int rootLine = absolutePosition.getLine();
+        int rootColumn = absolutePosition.getColumn();
+        int rootWidth = rootElement.getWidth();
+        int rootHeight = rootElement.getHeight();
+
+        int x = editorModel.getAbsoluteCaretX();
+        int y = editorModel.getAbsoluteCaretY();
         switch (dir) {
             case Down:
-                y++;
+                if (y < rootLine + rootHeight - 1)
+                    y++;
                 break;
             case Up:
-                y--;
+                if (y > rootLine)
+                    y--;
                 break;
             case Left:
-                x--;
+                if (x > rootColumn)
+                    x--;
                 break;
             case Right:
-                x++;
+                if (x < rootColumn + rootWidth)
+                    x++;
                 break;
         }
-        TextPosition p = graph.normalize(new TextPosition(y, x), dir);
-        x = p.getColumn();
-        y = p.getLine();
-        editorModel.setAbsoluteCaretY(y);
-        editorModel.setAbsoluteCaretX(x);
+
+        editorModel.setAbsoluteCaretPosition(x, y);
+
         editorModel.repaint();
-        editorModel.setFocusedElement(graph.findElementByPos(x, y));
     }
 }

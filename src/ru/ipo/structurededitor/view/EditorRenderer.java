@@ -3,9 +3,7 @@ package ru.ipo.structurededitor.view;
 import ru.ipo.structurededitor.controller.EditorsRegistry;
 import ru.ipo.structurededitor.model.*;
 import ru.ipo.structurededitor.view.editors.ArrayEditor;
-import ru.ipo.structurededitor.view.editors.ArrayEditorV2;
 import ru.ipo.structurededitor.view.editors.FieldEditor;
-import ru.ipo.structurededitor.view.editors.StringEditor;
 import ru.ipo.structurededitor.view.elements.CompositeElement;
 import ru.ipo.structurededitor.view.elements.TextElement;
 import ru.ipo.structurededitor.view.elements.VisibleElement;
@@ -79,7 +77,7 @@ public class EditorRenderer {
 //                ArrayEditor ed = new ArrayEditor(editableBean, vertArray.getFieldName(),
 //                        CompositeElement.Orientation.Vertical, vertArray.getSpaceChar(), vertArray.getSingleLined(),
 //                        model);
-                ArrayEditorV2 ed = new ArrayEditorV2(
+                ArrayEditor ed = new ArrayEditor(
                         editableBean,
                         vertArray.getFieldName(),
                         null,
@@ -93,7 +91,7 @@ public class EditorRenderer {
                 /*ArrayEditor ed = new ArrayEditor(editableBean, horizArray.getFieldName(),
                         CompositeElement.Orientation.Horizontal, horizArray.getSpaceChar(), horizArray.getSingleLined(),
                         model);*/
-                ArrayEditorV2 ed = new ArrayEditorV2(
+                ArrayEditor ed = new ArrayEditor(
                         editableBean,
                         horizArray.getFieldName(),
                         null,

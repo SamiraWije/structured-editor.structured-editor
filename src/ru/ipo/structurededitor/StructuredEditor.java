@@ -5,8 +5,6 @@ import ru.ipo.structurededitor.actions.VisibleElementAction;
 import ru.ipo.structurededitor.model.DefaultDSLBean;
 import ru.ipo.structurededitor.view.StructuredEditorModel;
 import ru.ipo.structurededitor.view.StructuredEditorUI;
-import ru.ipo.structurededitor.view.TextPosition;
-import ru.ipo.structurededitor.view.VisibleElementsGraph;
 import ru.ipo.structurededitor.view.elements.VisibleElement;
 
 import javax.swing.*;
@@ -140,50 +138,27 @@ public class StructuredEditor extends JComponent implements Scrollable {
 
     @Override
     protected void processMouseEvent(MouseEvent e) {
-        if (!view) {
-            VisibleElementsGraph graph = new VisibleElementsGraph(model
-                    .getRootElement());
-            int x = getUI().pixelsToX((e.getX()));
-            int y = getUI().pixelsToY((e.getY()));
-
-            TextPosition tp = model.getRootElement().getAbsolutePosition();
-            int w = model.getRootElement().getWidth();
-            int h = model.getRootElement().getHeight();
-            if (e.getID() == MouseEvent.MOUSE_CLICKED && x <= tp.getColumn() + w && y <= tp.getLine() + h) {
-                this.requestFocusInWindow();
-                /*   if (app!=null){
-                    try {
-                       app.getClass().getSuperclass().getDeclaredMethod("clearSelectedGeos").invoke(app);
-                    } catch (Exception ex) {
-                        throw new Error(ex);
-                    }
-                }*/
-                TextPosition p = graph.normalize(new TextPosition(y, x), VisibleElementsGraph.Direction.Down);
-                x = p.getColumn();
-                y = p.getLine();
-                model.setAbsoluteCaretY(y);
-                model.setAbsoluteCaretX(x);
-                VisibleElement newFocused = graph.findElementByPos(x, y);
-                if (newFocused == model.getFocusedElement())
-                    model.repaint();
-                else
-                    model.setFocusedElement(newFocused);
-                //VisibleElement el = model.getRootElement();
-                e = new MouseEvent(
-                        (Component) e.getSource(),
-                        e.getID(),
-                        e.getWhen(),
-                        e.getModifiers(),
-                        x,
-                        y,
-                        e.getClickCount(),
-                        e.isPopupTrigger(),
-                        e.getButton()
-                );
-                newFocused.fireMouseEvent(e);
-            }
+        //we will make our processing only if editor is not in view mode and if mouse clicked event happend
+        if (view || e.getID() != MouseEvent.MOUSE_CLICKED) {
+            super.processMouseEvent(e);
+            return;
         }
 
+        requestFocusInWindow();
+
+        //evaluate position of caret
+        int col = getUI().pixelsToX(e.getX());
+        int line = getUI().pixelsToY(e.getY());
+
+        if (col < 0)
+            col = 0;
+        if (line < 0)
+            line = 0;
+
+
+        model.setAbsoluteCaretPosition(col, line);
+
+        super.processMouseEvent(e);
     }
 
     private void registerCaretMovementKeyStrokes() {
@@ -194,14 +169,15 @@ public class StructuredEditor extends JComponent implements Scrollable {
                 .put(KeyStroke.getKeyStroke("pressed LEFT"), "move caret left");
         getInputMap().put(KeyStroke.getKeyStroke("pressed RIGHT"),
                 "move caret right");
+
         getActionMap().put("move caret up",
-                new CaretMovementAction(VisibleElementsGraph.Direction.Up));
+                new CaretMovementAction(CaretMovementAction.Direction.Up));
         getActionMap().put("move caret down",
-                new CaretMovementAction(VisibleElementsGraph.Direction.Down));
+                new CaretMovementAction(CaretMovementAction.Direction.Down));
         getActionMap().put("move caret left",
-                new CaretMovementAction(VisibleElementsGraph.Direction.Left));
+                new CaretMovementAction(CaretMovementAction.Direction.Left));
         getActionMap().put("move caret right",
-                new CaretMovementAction(VisibleElementsGraph.Direction.Right));
+                new CaretMovementAction(CaretMovementAction.Direction.Right));
     }
 
     public void setModel(StructuredEditorModel model) {
@@ -248,8 +224,8 @@ public class StructuredEditor extends JComponent implements Scrollable {
 
         UIManager.put("StructuredEditorUI", "ru.ipo.structurededitor.view.StructuredEditorUI");
         UIManager.put("StructuredEditor.font", new Font(Font.MONOSPACED/*"DejaVu Sans Mono"*/, Font.PLAIN, 14));
-        UIManager.put("StructuredEditor.horizontalMargin", 0);
-        UIManager.put("StructuredEditor.verticalMargin", 0);
+        UIManager.put("StructuredEditor.horizontalMargin", 2);
+        UIManager.put("StructuredEditor.verticalMargin", 2);
         UIManager.put("StructuredEditor.focusedColor", new Color(0xFFFF88));
         UIManager.put("StructuredEditor.textSelection.color", new Color(0x00FFFF));
 

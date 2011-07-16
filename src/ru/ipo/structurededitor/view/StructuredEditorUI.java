@@ -3,7 +3,6 @@ package ru.ipo.structurededitor.view;
 import ru.ipo.structurededitor.StructuredEditor;
 import ru.ipo.structurededitor.actions.ActionsListComponent;
 import ru.ipo.structurededitor.actions.VisibleElementAction;
-import ru.ipo.structurededitor.view.elements.TextEditorElement;
 import ru.ipo.structurededitor.view.elements.VisibleElement;
 import ru.ipo.structurededitor.view.events.*;
 
@@ -11,10 +10,7 @@ import javax.swing.*;
 import javax.swing.Timer;
 import javax.swing.plaf.ComponentUI;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
+import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.*;
@@ -35,7 +31,6 @@ public class StructuredEditorUI extends ComponentUI {
     private int verticalMargin;
 
     private boolean caretVisible = true;
-    private static Timer caretBlinkTimer = new Timer(600, null);
     private ActionListener caretBlinkListener = new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -44,14 +39,11 @@ public class StructuredEditorUI extends ComponentUI {
             editor.getModel().repaint();
         }
     };
+    private Timer caretBlinkTimer = new Timer(600, caretBlinkListener);
 
     private PopupSupport popupSupport;
 
     private static HashMap<JComponent, StructuredEditorUI> editor2ui = new HashMap<JComponent, StructuredEditorUI>();
-
-    static {
-        caretBlinkTimer.start();
-    }
 
     public static ComponentUI createUI(JComponent component) {
         StructuredEditorUI ui = editor2ui.get(component);
@@ -105,7 +97,7 @@ public class StructuredEditorUI extends ComponentUI {
         horizontalMargin = UIManager.getInt("StructuredEditor.horizontalMargin");
         verticalMargin = UIManager.getInt("StructuredEditor.verticalMargin");
 
-        caretBlinkTimer.addActionListener(caretBlinkListener);
+        caretBlinkTimer.start();
 
         editor.setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
 
@@ -129,28 +121,6 @@ public class StructuredEditorUI extends ComponentUI {
             }
         });
 
-        editor.getModel().addPopupListener(new PopupListener() {
-            public ListDialog showPopup(PopupEvent evt) {
-                int x = evt.getX();
-                int y = evt.getY();
-                Vector<String> filteredPopupList = evt.getFilteredPopupList();
-
-                x = xToPixels(x) + editor.getLocationOnScreen().x;
-                y = yToPixels(y) + editor.getLocationOnScreen().y;
-                ListDialog dialog = new ListDialog(
-                        editor,
-                        filteredPopupList.toArray(),
-                        filteredPopupList.get(0),
-                        evt.getLongStr(),
-                        x,
-                        y
-                );
-                redrawEditor();
-                return dialog;
-            }
-
-        });
-
         editor.addFocusListener(new FocusListener() {
             public void focusGained(FocusEvent e) {
                 redrawEditor();
@@ -163,6 +133,7 @@ public class StructuredEditorUI extends ComponentUI {
 
         editor.getModel().addCaretListener(new CaretListener() {
             public void showCaret(CaretEvent evt) {
+                //TODO rewrite
                 if (!editor.hasFocus() || !caretVisible)
                     return;
                 Graphics g = evt.getD().getGraphics();
@@ -171,8 +142,10 @@ public class StructuredEditorUI extends ComponentUI {
                 int x0 = xToPixels(editor.getModel().getAbsoluteCaretX());
                 int y0 = yToPixels(editor.getModel().getAbsoluteCaretY());
                 int y1 = y0 + getCharHeight();
-                g.drawLine(x0, y0, x0, y0);
                 g.drawLine(x0-1, y0, x0-1, y1);
+
+                //TODO scroll
+                //editor.scrollRectToVisible(new Rectangle(x0, y0, 2, y1 - y0));
             }
         });
 
@@ -203,6 +176,15 @@ public class StructuredEditorUI extends ComponentUI {
                 );
             }
         });
+
+        editor.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                caretBlinkTimer.restart();
+                caretVisible = true;
+                redrawEditor();
+            }
+        });
     }
 
     private void updateAvailableActions() {
@@ -217,30 +199,6 @@ public class StructuredEditorUI extends ComponentUI {
         actionsListComponent.clearActions();
         for (VisibleElementAction action : actions)
             actionsListComponent.addAction(action);
-
-        //TODO remove this
-//        actionsListComponent.addAction(new VisibleElementAction("text 1 text text", "key.png", KeyStroke.getKeyStroke("1")) {
-//            @Override public void run(StructuredEditorModel model) {System.out.println(1);}});
-//        actionsListComponent.addAction(new VisibleElementAction("text 2 text text", "key.png", KeyStroke.getKeyStroke("1")) {
-//            @Override public void run(StructuredEditorModel model) {System.out.println(2);}});
-//        actionsListComponent.addAction(new VisibleElementAction("text 3 text text", "key.png", KeyStroke.getKeyStroke("1")) {
-//            @Override public void run(StructuredEditorModel model) {System.out.println(3);}});
-//        actionsListComponent.addAction(new VisibleElementAction("text 4 text text", "key.png", KeyStroke.getKeyStroke("1")) {
-//            @Override public void run(StructuredEditorModel model) {System.out.println(4);}});
-//        actionsListComponent.addAction(new VisibleElementAction("text 5 text text", "key.png", KeyStroke.getKeyStroke("1")) {
-//            @Override public void run(StructuredEditorModel model) {System.out.println(5);}});
-//        actionsListComponent.addAction(new VisibleElementAction("text 6 text text", "key.png", KeyStroke.getKeyStroke("1")) {
-//            @Override public void run(StructuredEditorModel model) {System.out.println(6);}});
-//        actionsListComponent.addAction(new VisibleElementAction("text 7 text text", "key.png", KeyStroke.getKeyStroke("1")) {
-//            @Override public void run(StructuredEditorModel model) {System.out.println(7);}});
-//        actionsListComponent.addAction(new VisibleElementAction("text 8 text text", "key.png", KeyStroke.getKeyStroke("1")) {
-//            @Override public void run(StructuredEditorModel model) {System.out.println(8);}});
-//        actionsListComponent.addAction(new VisibleElementAction("text 9 text text", "key.png", KeyStroke.getKeyStroke("1")) {
-//            @Override public void run(StructuredEditorModel model) {System.out.println(9);}});
-//        actionsListComponent.addAction(new VisibleElementAction("text 10 text text", "key.png", KeyStroke.getKeyStroke("1")) {
-//            @Override public void run(StructuredEditorModel model) {System.out.println(10);}});
-//        actionsListComponent.addAction(new VisibleElementAction("text 11 text text", "key.png", KeyStroke.getKeyStroke("1")) {
-//            @Override public void run(StructuredEditorModel model) {System.out.println(11);}});
     }
 
     @Override

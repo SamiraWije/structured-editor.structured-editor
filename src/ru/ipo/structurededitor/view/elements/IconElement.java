@@ -21,10 +21,6 @@ public class IconElement extends VisibleElement {
         this.icon = icon;
     }
 
-    public boolean isEmpty() {
-        return icon == null;
-    }
-
     @Override
     public void drawElement(int x0, int y0, Display d) {
         int x = d.xToPixels(x0);

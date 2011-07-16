@@ -66,7 +66,7 @@ public class Defaults {
             public Class<? extends FieldEditor> substituteEditor(Class<? extends DSLBean> beanClass,
                                                                  String propertyName, FieldMask mask, Class valueType) {
                 if (valueType.isEnum()) {
-                    return EnumEditorV2.class;
+                    return EnumEditor.class;
                 }
                 return null;
             }
@@ -84,7 +84,7 @@ public class Defaults {
                 Class[] interf = valueType.getInterfaces();
                 //TODO why only [0]?
                 if (interf != null && interf.length > 0 && valueType.getInterfaces()[0] == DSLBean.class) {
-                    return DSLBeanEditorV3.class;
+                    return DSLBeanEditor.class;
                 }
                 return null;
             }

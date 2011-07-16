@@ -51,8 +51,6 @@ public abstract class VisibleElement {
 
     public abstract void drawElement(int x0, int y0, Display d);
 
-    public abstract boolean isEmpty();
-
     public boolean isView(){
         return getModel().isView();
     }

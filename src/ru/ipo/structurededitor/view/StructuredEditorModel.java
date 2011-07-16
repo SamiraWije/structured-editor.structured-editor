@@ -11,12 +11,12 @@ import javax.swing.*;
 import javax.swing.event.EventListenerList;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.util.Vector;
 
 /**
  * Корень дерева ячеек
  */
 public class StructuredEditorModel {
+
     public Object getApp() {
         return app;
     }
@@ -37,26 +37,28 @@ public class StructuredEditorModel {
         setRootElement(new EditorRenderer(this, o).getRenderResult());
     }
 
-    private boolean view=false;
+    private boolean view = false;
+    private int absoluteCaretX = 0;
+    private int absoluteCaretY = 0;
 
     public int getAbsoluteCaretX() {
         return absoluteCaretX;
-    }
-
-    public void setAbsoluteCaretX(int absoluteCaretX) {
-        this.absoluteCaretX = absoluteCaretX;
     }
 
     public int getAbsoluteCaretY() {
         return absoluteCaretY;
     }
 
-    public void setAbsoluteCaretY(int absoluteCaretY) {
-        this.absoluteCaretY = absoluteCaretY;
-    }
+    public void setAbsoluteCaretPosition(int col, int line) {
+        this.absoluteCaretX = col;
+        this.absoluteCaretY = line;
 
-    private int absoluteCaretX = 0;
-    private int absoluteCaretY = 0;
+        //test if other component should be focused
+        if (focusedElement == null || !elementContainsPoint(focusedElement, line, col))
+            setFocusedElement(findElementByPosition(line, col));
+
+        repaint();
+    }
 
     private VisibleElement rootElement;
     //private StructuredEditor editor;
@@ -151,25 +153,12 @@ public class StructuredEditorModel {
         listenerList.remove(CaretListener.class, l);
     }
 
-    public void addPopupListener(PopupListener l) {
-        listenerList.add(PopupListener.class, l);
-    }
-
-    public void removePopupListener(PopupListener l) {
-        listenerList.remove(PopupListener.class, l);
-    }
-
     public void addRepaintListener(RepaintListener l) {
         listenerList.add(RepaintListener.class, l);
     }
 
     public void removeRepaintListener(RepaintListener l) {
         listenerList.remove(RepaintListener.class, l);
-    }
-
-    public ListDialog showPopup(Vector<String> filteredPopupList, String longStr, int x, int y) {
-        return firePopupShow(new PopupEvent(this, filteredPopupList, longStr, x, y));
-
     }
 
     public void showCaret(Display d) {
@@ -184,27 +173,9 @@ public class StructuredEditorModel {
         Object[] listeners = listenerList.getListenerList();
         for (int i = listeners.length - 2; i >= 0; i -= 2) {
             if (listeners[i] == RepaintListener.class) {
-                // Lazily create the event:
-                /*if (Event == null)
-             fooEvent = new FooEvent(this);*/
                 ((RepaintListener) listeners[i + 1]).repaint();
             }
         }
-
-
-    }
-
-    protected ListDialog firePopupShow(PopupEvent pe) {
-        Object[] listeners = listenerList.getListenerList();
-        for (int i = listeners.length - 2; i >= 0; i -= 2) {
-            if (listeners[i] == PopupListener.class) {
-                // Lazily create the event:
-                /*if (Event == null)
-             fooEvent = new FooEvent(this);*/
-                return ((PopupListener) listeners[i + 1]).showPopup(pe);
-            }
-        }
-        return null;
     }
 
     protected void fireCaretShow(CaretEvent ce) {
@@ -218,8 +189,6 @@ public class StructuredEditorModel {
                 //return;
             }
         }
-
-
     }
 
     public VisibleElement getFocusedElement() {
@@ -260,17 +229,13 @@ public class StructuredEditorModel {
         pcs.removePropertyChangeListener(propertyName, listener);
     }
 
-    /* public void setEditor(StructuredEditor editor) {
-        this.editor = editor;
-    }*/
-
     /**
      * Установить активный элемент и вызвать всех подписанных слушателей
      *
      * @param focusedElement element to set focus to
      */
 
-    public void setFocusedElement(VisibleElement focusedElement) {
+    private void setFocusedElement(VisibleElement focusedElement) {
         if (focusedElement == this.focusedElement)
             return;
 
@@ -291,6 +256,8 @@ public class StructuredEditorModel {
         if (focusedElement != null) {
             focusedElement.fireFocusChanged(false);
         }
+
+        repaint();
     }
 
     public void setRootElement(VisibleElement rootElement) {
@@ -298,12 +265,9 @@ public class StructuredEditorModel {
         setFocusedElement(rootElement);
     }
 
-    public void setFocusedElementAndCaret(VisibleElement visibleElement) {
+    public void moveCaretToElement(VisibleElement visibleElement) {
         TextPosition tp = visibleElement.getAbsolutePosition();
-        setAbsoluteCaretX(tp.getColumn());
-        setAbsoluteCaretY(tp.getLine());
-        setFocusedElement(visibleElement);
-        repaint();
+        setAbsoluteCaretPosition(tp.getColumn(), tp.getLine());
     }
 
     //popup component changed event: add, remove, fire
@@ -335,6 +299,45 @@ public class StructuredEditorModel {
         firePopupComponentChangedEvent(null);
     }
 
+    private boolean elementContainsPoint(VisibleElement element, int line, int column) {
+        TextPosition position = element.getAbsolutePosition();
+
+        int line0 = position.getLine();
+        int column0 = position.getColumn();
+
+        int w = element.getWidth();
+        int h = element.getHeight();
+
+        return line0 <= line &&
+                line < line0 + h &&
+                column0 <= column &&
+                column <= column0 + w;
+    }
+
+    public VisibleElement findElementByPosition(int line, int column) {
+        VisibleElement element = getRootElement();
+
+        if (!elementContainsPoint(element, line, column))
+            return null;
+
+        goDown:
+        while (true) {
+            int childrenCount = element.getChildrenCount();
+            if (childrenCount == 0)
+                return element;
+
+            for (int i = 0; i < childrenCount; i++) {
+                VisibleElement child = element.getChild(i);
+                if (elementContainsPoint(child, line, column)) {
+                    element = child;
+                    continue goDown;
+                }
+            }
+
+            return null;
+        }
+    }
+
     //visible actions changed
 
     public void fireVisibleElementActionsChangedEvent(VisibleElement element) {
@@ -354,5 +357,19 @@ public class StructuredEditorModel {
 
     public void removeVisibleElementActionsChangedListener(VisibleElementActionsChangedListener listener) {
         listenerList.remove(VisibleElementActionsChangedListener.class, listener);
+    }
+
+    public void testFocus() {
+        VisibleElement e = focusedElement;
+
+        while (true) {
+            if (e == rootElement)
+                return;
+            if (e == null) {
+                focusedElement = null;
+                return;
+            }
+            e = e.getParent();
+        }
     }
 }

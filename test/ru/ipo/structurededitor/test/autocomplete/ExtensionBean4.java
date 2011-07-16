@@ -11,7 +11,6 @@ import ru.ipo.structurededitor.model.*;
 public class ExtensionBean4 extends AbstractExtensionBean {
 
     private int x;
-
     private EnumExample[] enums;
 
     public int getX() {

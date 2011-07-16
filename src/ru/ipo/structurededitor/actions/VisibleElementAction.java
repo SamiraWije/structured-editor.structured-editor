@@ -12,6 +12,7 @@ import javax.swing.*;
  */
 public abstract class VisibleElementAction {
 
+    //TODO implement: null text and null icon means invisible action that is not displayed in the list of actions
     private final String actionText;
     private final Icon icon;
     private final KeyStroke keyStroke;

@@ -5,7 +5,6 @@ import ru.ipo.structurededitor.view.StructuredEditorModel;
 import ru.ipo.structurededitor.view.TextPosition;
 
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
@@ -51,16 +50,6 @@ public class ContainerElement extends VisibleElement {
         return subElement;
     }
 
-    @Override
-    public void processMouseEvent(MouseEvent evt) {
-        subElement.processMouseEvent(evt);
-
-    }
-
-    public boolean isEmpty() {
-        return subElement == null || subElement.isEmpty();
-    }
-
     public void setSubElement(final VisibleElement subElement) {
         if (subElement == null)
             throw new NullPointerException("Can not set null sub element");
@@ -68,6 +57,7 @@ public class ContainerElement extends VisibleElement {
         if (this.subElement != null) {
             this.subElement.removePropertyChangeListener("width", sizeListener);
             this.subElement.removePropertyChangeListener("height", sizeListener);
+            this.subElement.setParent(null);
         }
 
         this.subElement = subElement;
@@ -79,6 +69,8 @@ public class ContainerElement extends VisibleElement {
 
         subElement.addPropertyChangeListener("width", sizeListener);
         subElement.addPropertyChangeListener("height", sizeListener);
+
+        getModel().testFocus();
     }
 
     public VisibleElement getSubElement() {
