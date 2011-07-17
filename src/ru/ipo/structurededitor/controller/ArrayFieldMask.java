@@ -2,7 +2,6 @@ package ru.ipo.structurededitor.controller;
 
 import java.lang.reflect.Array;
 
-
 /**
  * Created by IntelliJ IDEA.
  * User: oleg

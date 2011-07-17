@@ -39,17 +39,19 @@ public class TextEditorElement extends TextElement {
 
     @Override
     public void drawElement(int x0, int y0, Display d) {
-        if (!isFocused() || isView()) {
-            super.drawElement(x0, y0, d);
-            return;
+        if (isFocused() && ! isView()) {
+            CaretData caretData = getElementCaret();
+            drawSelection(x0, y0, d, caretData);
         }
 
-        CaretData caretData = getElementCaret();
+        super.drawElement(x0, y0, d);
+    }
 
+    private void drawSelection(int x0, int y0, Display d, CaretData caretData) {
         //draw selection if
         // Mark is not in the position -1,-1 (this position marks the mark as absent) and
         // mark is not in the same place as the caret
-        if (isFocused() && markColumn >= 0 && markColumn >= 0 &&
+        if (markColumn >= 0 && markColumn >= 0 &&
                 !(markColumn == caretData.columnNormalized && markLine == caretData.line)) {
 
             //set selection color
@@ -98,8 +100,6 @@ public class TextEditorElement extends TextElement {
                 d.getGraphics().fillRect(x0p, y3p, x2p - x0p, y4p - y3p);
             }
         }
-
-        super.drawElement(x0, y0, d);
     }
 
     @Override
@@ -232,9 +232,10 @@ public class TextEditorElement extends TextElement {
         StringBuilder sb = new StringBuilder();
 
         sb.append(text.substring(0, caretData.stringPosition));
-        //append whitespaces if needed
-        for (int i = caretData.columnNormalized; i < caretData.column; i++)
-            sb.append(' ');
+        //append whitespaces if cursor is to the right of the last line symbol, but it's not the null/empty text
+        if (!text.equals(""))
+            for (int i = caretData.columnNormalized; i < caretData.column; i++)
+                sb.append(' ');
         sb.append(c);
         int newCaretPos = sb.length();
         sb.append(text.substring(caretData.stringPosition));
@@ -290,13 +291,16 @@ public class TextEditorElement extends TextElement {
         if (markColumn == -1)
             return;
 
+        String text = getText();
+        if (text == null)
+            return;
+
         CaretData markData = getElementCaret(markColumn, markLine);
 
         int minPosition = Math.min(markData.stringPosition, caretData.stringPosition);
         int maxPosition = Math.max(markData.stringPosition, caretData.stringPosition);
 
         StringBuilder sb = new StringBuilder();
-        String text = getText();
         sb
                 .append(text.substring(0, minPosition))
                 .append(text.substring(maxPosition));
@@ -366,12 +370,6 @@ public class TextEditorElement extends TextElement {
         caretData.stringPosition = position;
         caretData.columnNormalized = caretData.column;
     }
-
-    /*private CaretData getCaretByPosition(int position) {
-        CaretData caretData = new CaretData();
-        getCaretByPosition(position, caretData);
-        return caretData;
-    }*/
 
     private static class CaretData {
 

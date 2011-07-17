@@ -1,9 +1,11 @@
 package ru.ipo.structurededitor.view.editors;
 
+import ru.ipo.structurededitor.actions.VisibleElementAction;
 import ru.ipo.structurededitor.controller.FieldMask;
 import ru.ipo.structurededitor.view.StructuredEditorModel;
 import ru.ipo.structurededitor.view.elements.TextEditorElement;
 
+import javax.swing.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
@@ -15,25 +17,50 @@ import java.beans.PropertyChangeListener;
  */
 public class StringEditor extends FieldEditor {
 
+    private final VisibleElementAction setNullAction = new VisibleElementAction("Удалить текст", "delete.png", KeyStroke.getKeyStroke("control DELETE")) {
+        @Override
+        public void run(StructuredEditorModel model) {
+            setValue(null);
+            updateElement();
+            getModel().moveCaretToElement(getElement());
+        }
+    };
+
     public StringEditor(Object o, String fieldName, FieldMask mask, boolean singleLined, StructuredEditorModel model) {
         super(o, fieldName, mask, singleLined, model);
         setModificationVector(model.getModificationVector());
-        String str = (String) getValue();
 
         final TextEditorElement editorElement;
-        editorElement = new TextEditorElement(model, str, singleLined);
+        editorElement = new TextEditorElement(model, null, singleLined);
+
         editorElement.addPropertyChangeListener("text", new PropertyChangeListener() {
+            @Override
             public void propertyChange(PropertyChangeEvent evt) {
-                setValue(editorElement.getText());
+                String newValue = (String) evt.getNewValue();
+                setValue(newValue);
+                updateSetNullActionVisibility(editorElement, newValue);
             }
         });
 
         setElement(editorElement);
+
+        updateElement();
     }
 
     @Override
     protected void updateElement() {
-        TextEditorElement editorElement = (TextEditorElement) getElement();
-        editorElement.setText((String) getValue());
+        TextEditorElement textElement = (TextEditorElement) getElement();
+        String value = (String) getValue();
+        textElement.setText(value);
+
+        updateSetNullActionVisibility(textElement, value);
     }
+
+    private void updateSetNullActionVisibility(TextEditorElement textElement, String value) {
+        if (value == null)
+            textElement.removeAction(setNullAction);
+        else
+            textElement.addAction(setNullAction);
+    }
+
 }

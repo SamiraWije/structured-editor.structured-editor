@@ -25,6 +25,10 @@ public class TextElement extends VisibleElement {
     private final boolean singleLine;
 
     private TextProperties textProperties = new TextProperties(Font.PLAIN, Color.BLACK); //TODO move to UIManager
+    private TextProperties emptyTextProperties = new TextProperties(Font.BOLD, Color.GRAY);
+
+    private String emptyText = "[Пусто]";
+    private String nullText = "[null]";
 
     //this symbols are not drawn but the show line breaks. Number of lines = lineDelimiterSymbols.size()
     private ArrayList<Integer> lineDelimiterSymbols = new ArrayList<Integer>();
@@ -83,6 +87,10 @@ public class TextElement extends VisibleElement {
         repaint();
     }
 
+    public TextProperties getTextProperties() {
+        return textProperties;
+    }
+
     public int getLinesCount() {
         return lineDelimiterSymbols.size() - 1;
     }
@@ -103,7 +111,12 @@ public class TextElement extends VisibleElement {
         return lineDelimiterSymbols.get(index + 1) - 1;
     }
 
-    public int countWidth() {
+    private int countWidth() {
+        if (getText() == null)
+            return nullText.length();
+        else if (getText().equals(""))
+            return emptyText.length();
+
         int lines = getLinesCount();
         int max = 0;
         for (int i = 0; i < lines; i++) {
@@ -115,11 +128,22 @@ public class TextElement extends VisibleElement {
         return max;
     }
 
-    public void drawElement(int x0, int y0, Display d) {
-        int lines = getLinesCount();
+    protected int countHeight() {
+        return getLinesCount();
+    }
 
-        for (int i = 0; i < lines; i++)
-            d.drawString(getLine(i), x0, y0 + i, textProperties);
+    public void drawElement(int x0, int y0, Display d) {
+        String text = getText();
+        if (text == null)
+            d.drawString(nullText, x0, y0, emptyTextProperties);
+        else if (text.equals(""))
+            d.drawString(emptyText, x0, y0, emptyTextProperties);
+        else {
+            int lines = getLinesCount();
+
+            for (int i = 0; i < lines; i++)
+                d.drawString(getLine(i), x0, y0 + i, textProperties);
+        }
     }
 
     public String getText() {
@@ -131,10 +155,36 @@ public class TextElement extends VisibleElement {
         this.text = text;
 
         updateLines();
-        setHeight(getLinesCount());
+        setHeight(countHeight());
         setWidth(countWidth());
 
         pcs.firePropertyChange("text", oldText, text);
     }
 
+    public void setEmptyTextProperties(TextProperties emptyTextProperties) {
+        this.emptyTextProperties = emptyTextProperties;
+        getModel().repaint();
+    }
+
+    public void setEmptyText(String emptyText) {
+        this.emptyText = emptyText;
+        getModel().repaint();
+    }
+
+    public void setNullText(String nullText) {
+        this.nullText = nullText;
+        getModel().repaint();
+    }
+
+    public TextProperties getEmptyTextProperties() {
+        return emptyTextProperties;
+    }
+
+    public String getEmptyText() {
+        return emptyText;
+    }
+
+    public String getNullText() {
+        return nullText;
+    }
 }
