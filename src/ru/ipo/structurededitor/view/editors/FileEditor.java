@@ -1,6 +1,7 @@
 package ru.ipo.structurededitor.view.editors;
 
 import ru.ipo.structurededitor.controller.FieldMask;
+import ru.ipo.structurededitor.model.EditorSettings;
 import ru.ipo.structurededitor.view.StructuredEditorModel;
 import ru.ipo.structurededitor.view.elements.TextElement;
 
@@ -20,8 +21,8 @@ public class FileEditor extends FieldEditor {
     public static final int MAX_FILE_LENGTH = 10 * 1024 * 1024; // 10 Mb
     public static final int BUFFER_SIZE = 4 * 1024; // 4 Kb
 
-    public FileEditor(Object o, String fieldName, FieldMask mask, StructuredEditorModel model) {
-        super(o, fieldName, mask, model);
+    public FileEditor(Object o, String fieldName, FieldMask mask, StructuredEditorModel model, EditorSettings settings) {
+        super(o, fieldName, mask, model, settings);
 
         //wtf ???
         setModificationVector(model.getModificationVector());

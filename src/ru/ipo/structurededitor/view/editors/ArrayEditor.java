@@ -6,6 +6,7 @@ import ru.ipo.structurededitor.controller.EditorsRegistry;
 import ru.ipo.structurededitor.controller.FieldMask;
 import ru.ipo.structurededitor.controller.MaskComposition;
 import ru.ipo.structurededitor.model.DSLBean;
+import ru.ipo.structurededitor.model.EditorSettings;
 import ru.ipo.structurededitor.view.StructuredEditorModel;
 import ru.ipo.structurededitor.view.elements.CompositeElement;
 import ru.ipo.structurededitor.view.elements.ContainerElement;
@@ -26,7 +27,9 @@ public class ArrayEditor extends FieldEditor {
 
     //implementation note: here in this editor values in array are always parallel to elements in composite element
 
-    //TODO add actions to swap array elements
+    //TODO add actions to swap array elements, to insert, backspace
+
+    private EditorSettings itemsSettings;
 
     private final VisibleElementAction setNullValueAction = new VisibleElementAction("Удалить массив", "delete.png", KeyStroke.getKeyStroke("control DELETE")) { //TODO set normal text
         @Override
@@ -38,14 +41,13 @@ public class ArrayEditor extends FieldEditor {
         }
     };
 
-    public ArrayEditor(Object o, String fieldName, FieldMask mask, CompositeElement.Orientation orientation, char spaceChar, final StructuredEditorModel model) {
-        super(o, fieldName, mask, model);
+    public ArrayEditor(Object o, String fieldName, FieldMask mask, CompositeElement.Orientation orientation, char spaceChar, final StructuredEditorModel model, EditorSettings settings, EditorSettings itemsSettings) {
+        super(o, fieldName, mask, model, settings);
+        this.itemsSettings = itemsSettings;
 
         setModificationVector(model.getModificationVector());
 
         final CompositeElement arrayElement = new CompositeElement(model, orientation, spaceChar);
-
-//        addAddAction(arrayElement);
 
         setElement(arrayElement);
 
@@ -98,8 +100,8 @@ public class ArrayEditor extends FieldEditor {
                 getFieldName(),
                 getObject(),
                 MaskComposition.composeMasks(new ArrayFieldMask(index), getMask()),
-                true,
-                getModel()
+                getModel(),
+                itemsSettings
         );
     }
 

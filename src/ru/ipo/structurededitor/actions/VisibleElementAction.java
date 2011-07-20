@@ -13,9 +13,9 @@ import javax.swing.*;
 public abstract class VisibleElementAction {
 
     //TODO implement: null text and null icon means invisible action that is not displayed in the list of actions
-    private final String actionText;
-    private final Icon icon;
-    private final KeyStroke keyStroke;
+    private String actionText;
+    private Icon icon;
+    private KeyStroke keyStroke;
 
     public abstract void run(StructuredEditorModel model);
 
@@ -49,5 +49,17 @@ public abstract class VisibleElementAction {
 
     public KeyStroke getKeyStroke() {
         return keyStroke;
+    }
+
+    public void setActionText(String actionText) {
+        this.actionText = actionText;
+    }
+
+    public void setIcon(Icon icon) {
+        this.icon = icon;
+    }
+
+    public void setKeyStroke(KeyStroke keyStroke) {
+        this.keyStroke = keyStroke;
     }
 }

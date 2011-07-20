@@ -32,7 +32,7 @@ public class EditorRenderer {
 
         Cell layout;
         if (model.isView() && editableBean instanceof DSLBeanView)
-            layout = ((DSLBeanView)editableBean).getViewLayout();
+            layout = ((DSLBeanView) editableBean).getViewLayout();
         else
             layout = editableBean.getLayout();
         renderResult = render(layout, editableBean);
@@ -50,12 +50,17 @@ public class EditorRenderer {
             return new TextElement(model, cell.getText());
         } else if (layout instanceof FieldCell) {
             FieldCell fieldCell = (FieldCell) layout;
-            FieldEditor ed = reg.getEditor(editableBean.getClass(), fieldCell
-                    .getFieldName(), editableBean, null, fieldCell.getSingleLined(), model);
+            FieldEditor ed = reg.getEditor(
+                    editableBean.getClass(),
+                    fieldCell.getFieldName(),
+                    editableBean,
+                    null,
+                    model,
+                    fieldCell.getSettings()
+            );
             return ed.getElement();
         }
-            if (layout instanceof Vert || layout instanceof Horiz)
-         {
+        if (layout instanceof Vert || layout instanceof Horiz) {
             final Cell[] cells;
             if (layout instanceof Vert)
                 cells = ((Vert) layout).getCells();
@@ -70,55 +75,25 @@ public class EditorRenderer {
                 res.add(render(cell, editableBean));
 
             return res;
-        } else if (layout instanceof VertArray || layout instanceof HorizArray) {
-            //ArrayEditor ed;
-            if (layout instanceof VertArray) {
-                VertArray vertArray = (VertArray) layout;
-//                ArrayEditor ed = new ArrayEditor(editableBean, vertArray.getFieldName(),
-//                        CompositeElement.Orientation.Vertical, vertArray.getSpaceChar(), vertArray.getSingleLined(),
-//                        model);
-                ArrayEditor ed = new ArrayEditor(
-                        editableBean,
-                        vertArray.getFieldName(),
-                        null,
-                        CompositeElement.Orientation.Vertical,
-                        vertArray.getSpaceChar(),
-                        model
-                );
-                return ed.getElement();
-            } else {
-                HorizArray horizArray = (HorizArray) layout;
-                /*ArrayEditor ed = new ArrayEditor(editableBean, horizArray.getFieldName(),
-                        CompositeElement.Orientation.Horizontal, horizArray.getSpaceChar(), horizArray.getSingleLined(),
-                        model);*/
-                ArrayEditor ed = new ArrayEditor(
-                        editableBean,
-                        horizArray.getFieldName(),
-                        null,
-                        CompositeElement.Orientation.Horizontal,
-                        horizArray.getSpaceChar(),
-                        model
-                );
-                return ed.getElement();
-            }
+        } else if (layout instanceof ArrayFieldCell) {
+            ArrayFieldCell arrayFieldCell = (ArrayFieldCell) layout;
+            ArrayFieldCell.Orientation orientation = arrayFieldCell.getOrientation();
 
+            ArrayEditor ed = new ArrayEditor(
+                    editableBean,
+                    arrayFieldCell.getFieldName(),
+                    null,
+                    orientation == ArrayFieldCell.Orientation.Vertical
+                            ? CompositeElement.Orientation.Vertical :
+                            CompositeElement.Orientation.Horizontal,
+                    arrayFieldCell.getSpaceChar(),
+                    model,
+                    arrayFieldCell.getArraySettings(),
+                    arrayFieldCell.getItemsSettings()
+            );
+            return ed.getElement();
 
-            // ArrayEditor res = new ArrayEditor(model,
-            //    layout instanceof VertArray ? CompositeElement.Orientation.Vertical
-            //               : CompositeElement.Orientation.Horizontal);
-            // int i=0;
-            // for (Cell cell : cells){
-            //    res.add(render((ArrayItem)cell, editableBean,i));
-            //   i++;
-            // }
-            // return res;
-        } /*else if (layout instanceof ArrayItem) {
-        ArrayItem ai = new ArrayItem()
-      ArrayItem arrayItem = (ArrayItem) layout;
-      FieldEditor ed = reg.getEditor(editableBean.getClass(), arrayItem
-          .getFieldName(), editableBean);
-      return ed.createElement(model);
-    }   */
+        }
 
         throw new Error("Surprise: unknown layout in EditorRenderer.render()");
     }

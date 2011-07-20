@@ -1,6 +1,7 @@
 package ru.ipo.structurededitor.view.editors;
 
 import ru.ipo.structurededitor.controller.FieldMask;
+import ru.ipo.structurededitor.model.EditorSettings;
 import ru.ipo.structurededitor.view.StructuredEditorModel;
 import ru.ipo.structurededitor.view.elements.BooleanEditorElement;
 
@@ -17,8 +18,8 @@ public class BooleanEditor extends FieldEditor {
 
     //public
 
-    public BooleanEditor(Object o, String fieldName, FieldMask mask, StructuredEditorModel model) {
-        super(o, fieldName, mask, model);
+    public BooleanEditor(Object o, String fieldName, FieldMask mask, StructuredEditorModel model, EditorSettings settings) {
+        super(o, fieldName, mask, model, settings);
         setModificationVector(model.getModificationVector());
         String bool_str = BooleanEditorElement.RUS_FALSE;
         Object val = getValue();

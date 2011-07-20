@@ -2,6 +2,7 @@ package ru.ipo.structurededitor.view.editors;
 
 import ru.ipo.structurededitor.actions.VisibleElementAction;
 import ru.ipo.structurededitor.controller.FieldMask;
+import ru.ipo.structurededitor.model.EditorSettings;
 import ru.ipo.structurededitor.view.StructuredEditorModel;
 import ru.ipo.structurededitor.view.autocomplete.AutoCompleteElement;
 import ru.ipo.structurededitor.view.elements.AutoCompleteTextElement;
@@ -58,8 +59,8 @@ public class EnumEditor extends FieldEditor {
         }
     };
 
-    public EnumEditor(Object o, String fieldName, FieldMask mask, StructuredEditorModel model) {
-        super(o, fieldName, mask, true, model);
+    public EnumEditor(Object o, String fieldName, FieldMask mask, StructuredEditorModel model, EditorSettings settings) {
+        super(o, fieldName, mask, model, settings);
 
         setModificationVector(model.getModificationVector());
 

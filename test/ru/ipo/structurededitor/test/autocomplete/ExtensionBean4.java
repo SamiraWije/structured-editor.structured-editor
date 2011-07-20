@@ -33,7 +33,7 @@ public class ExtensionBean4 extends AbstractExtensionBean {
     public Cell getLayout() {
         return new Vert(
                 new Horiz(new ConstantCell("bean 4 ="), new FieldCell("x")),
-                new Horiz(new ConstantCell("enums ="), new VertArray("enums"))
+                new Horiz(new ConstantCell("enums ="), new ArrayFieldCell("enums", ArrayFieldCell.Orientation.Vertical))
         );
     }
 }

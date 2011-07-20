@@ -39,7 +39,7 @@ public class Bean1 implements DSLBean {
                 new Horiz(new ConstantCell("Boolean Array Field 10: "), new HorizArray("field10")),
                 new Horiz(new ConstantCell("String Array Field 11: "), new HorizArray("field11")),
                 new Horiz(new ConstantCell("BeanA2 Array Field 12: "), new HorizArray("field12")),
-                new Horiz(new ConstantCell("Abstract BeanA Array Field 13: "), new VertArray("field13"))
+                new Horiz(new ConstantCell("Abstract BeanA Array Field 13: "), new ArrayFieldCell("field13"))
         );
     }
 

@@ -2,7 +2,9 @@ package ru.ipo.structurededitor.view.editors;
 
 import ru.ipo.structurededitor.actions.VisibleElementAction;
 import ru.ipo.structurededitor.controller.FieldMask;
+import ru.ipo.structurededitor.model.EditorSettings;
 import ru.ipo.structurededitor.view.StructuredEditorModel;
+import ru.ipo.structurededitor.view.editors.settings.StringSettings;
 import ru.ipo.structurededitor.view.elements.TextEditorElement;
 
 import javax.swing.*;
@@ -26,12 +28,12 @@ public class StringEditor extends FieldEditor {
         }
     };
 
-    public StringEditor(Object o, String fieldName, FieldMask mask, boolean singleLined, StructuredEditorModel model) {
-        super(o, fieldName, mask, singleLined, model);
+    public StringEditor(Object o, String fieldName, FieldMask mask, StructuredEditorModel model, EditorSettings settings) {
+        super(o, fieldName, mask, model, settings);
         setModificationVector(model.getModificationVector());
 
         final TextEditorElement editorElement;
-        editorElement = new TextEditorElement(model, null, singleLined);
+        editorElement = new TextEditorElement(model, null, getSettings().isSingleLine());
 
         editorElement.addPropertyChangeListener("text", new PropertyChangeListener() {
             @Override
@@ -45,6 +47,10 @@ public class StringEditor extends FieldEditor {
         setElement(editorElement);
 
         updateElement();
+    }
+
+    private StringSettings getSettings() {
+        return getSettings(StringSettings.class);
     }
 
     @Override

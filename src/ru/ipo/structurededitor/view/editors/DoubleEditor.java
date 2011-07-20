@@ -1,6 +1,7 @@
 package ru.ipo.structurededitor.view.editors;
 
 import ru.ipo.structurededitor.controller.FieldMask;
+import ru.ipo.structurededitor.model.EditorSettings;
 import ru.ipo.structurededitor.view.StructuredEditorModel;
 import ru.ipo.structurededitor.view.TextProperties;
 import ru.ipo.structurededitor.view.elements.TextEditorElement;
@@ -18,8 +19,8 @@ import java.beans.PropertyChangeListener;
  */
 public class DoubleEditor extends FieldEditor {
 
-    public DoubleEditor(Object o, String fieldName, FieldMask mask, StructuredEditorModel model) {
-        super(o, fieldName, mask, model);
+    public DoubleEditor(Object o, String fieldName, FieldMask mask, StructuredEditorModel model, EditorSettings settings) {
+        super(o, fieldName, mask, model, settings);
         setModificationVector(model.getModificationVector());
         String text;
         Object val = getValue();

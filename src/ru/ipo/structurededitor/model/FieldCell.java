@@ -9,6 +9,7 @@ public class FieldCell implements Cell {
      * имя поля в JavaBean для редактирования
      */
     private String fieldName;
+    private EditorSettings settings;
 
     public void setFieldName(String fieldName) {
         this.fieldName = fieldName;
@@ -28,13 +29,16 @@ public class FieldCell implements Cell {
         this.fieldName = fieldName;
     }
 
-    public FieldCell(String fieldName, boolean singleLined) {
+    public FieldCell(String fieldName, EditorSettings settings) {
         this.fieldName = fieldName;
-        this.singleLined = singleLined;
+        this.settings = settings;
     }
 
     public String getFieldName() {
         return fieldName;
     }
 
+    public EditorSettings getSettings() {
+        return settings;
+    }
 }

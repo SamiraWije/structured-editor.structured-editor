@@ -12,7 +12,6 @@ import java.util.Vector;
  * User: oleg
  * Date: 08.11.2010
  * Time: 15:09:59
- * To change this template use File | Settings | File Templates.
  */
 public class ModificationVector {
     private Vector<Modification> vector;

@@ -4,6 +4,7 @@ import ru.ipo.structurededitor.controller.FieldMask;
 import ru.ipo.structurededitor.controller.Modification;
 import ru.ipo.structurededitor.controller.ModificationVector;
 import ru.ipo.structurededitor.model.DSLBean;
+import ru.ipo.structurededitor.model.EditorSettings;
 import ru.ipo.structurededitor.view.StructuredEditorModel;
 import ru.ipo.structurededitor.view.elements.VisibleElement;
 
@@ -18,7 +19,6 @@ public abstract class FieldEditor {
 
     private Object o;
     private String fieldName;
-    private boolean singleLined = false;
     private final StructuredEditorModel model;
 
     private VisibleElement editorElement;
@@ -27,20 +27,14 @@ public abstract class FieldEditor {
 
     private ModificationVector modificationVector;
 
-    public FieldEditor(Object o, String fieldName, FieldMask mask, boolean singleLined, StructuredEditorModel model) {
-        this.o = o;
-        this.fieldName = fieldName;
-        this.mask = mask;
-        this.singleLined = singleLined;
-        this.model = model;
-        //empty = forcedGetValue() == null;
-    }
+    private EditorSettings settings;
 
-    public FieldEditor(Object o, String fieldName, FieldMask mask, StructuredEditorModel model) {
+    public FieldEditor(Object o, String fieldName, FieldMask mask, StructuredEditorModel model, EditorSettings settings) {
         this.o = o;
         this.fieldName = fieldName;
         this.mask = mask;
         this.model = model;
+        this.settings = settings;
 
         //empty = forcedGetValue() == null;
     }
@@ -155,6 +149,22 @@ public abstract class FieldEditor {
 
     public StructuredEditorModel getModel() {
         return model;
+    }
+
+    /**
+     * Returns settings of the specified types. It is usually a good idea to implement getSettings() in
+     * subclasses that calls getSettings(settingsClass)
+     * @param settingsClass type of settings
+     * @return settings
+     */
+    protected <T extends EditorSettings> T getSettings(Class<T> settingsClass) {
+        if (settings == null) {
+            try {
+                settings = settingsClass.newInstance();
+            } catch (Exception ignored) {}
+        }
+
+        return (T) settings;
     }
 
     protected abstract void updateElement();

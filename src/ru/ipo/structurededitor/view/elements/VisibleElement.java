@@ -243,6 +243,9 @@ public abstract class VisibleElement {
     }
 
     public void addAction(VisibleElementAction action) {
+        if (action == null)
+            return;
+
         if (!actions.contains(action)) {
             actions.add(action);
             model.fireVisibleElementActionsChangedEvent(this);
@@ -250,6 +253,9 @@ public abstract class VisibleElement {
     }
 
     public void removeAction(VisibleElementAction action) {
+        if (action == null)
+            return;
+
         if (actions.contains(action)) {
             actions.remove(action);
             model.fireVisibleElementActionsChangedEvent(this);

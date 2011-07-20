@@ -120,16 +120,6 @@ public class AutoCompleteTextElement extends TextEditorElement implements Proper
         showPopupAction.run(getModel());
     }
 
-    /*private void chooseTextColor(boolean correctElement) {
-        String uiManagerColor;
-        if (correctElement)
-            uiManagerColor = "AutoCompleteTextElement.knownShortcut";
-        else
-            uiManagerColor = "AutoCompleteTextElement.unknownShortcut";
-
-        setTextProperties(new TextProperties(Font.PLAIN, UIManager.getColor(uiManagerColor)));
-    }*/
-
     @Override
     public void processKeyEvent(KeyEvent e) {
         KeyStroke ks = KeyStroke.getKeyStrokeForEvent(e);
@@ -212,5 +202,9 @@ public class AutoCompleteTextElement extends TextEditorElement implements Proper
 
     public Object getSelectedValue() {
         return selectedValue;
+    }
+
+    public void setShowPopupActionText(String actionText) {
+        showPopupAction.setActionText(actionText);
     }
 }

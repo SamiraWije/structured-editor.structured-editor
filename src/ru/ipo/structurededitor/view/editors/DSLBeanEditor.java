@@ -4,9 +4,12 @@ import ru.ipo.structurededitor.actions.VisibleElementAction;
 import ru.ipo.structurededitor.controller.FieldMask;
 import ru.ipo.structurededitor.model.DSLBean;
 import ru.ipo.structurededitor.model.DSLBeanParams;
+import ru.ipo.structurededitor.model.EditorSettings;
 import ru.ipo.structurededitor.view.EditorRenderer;
 import ru.ipo.structurededitor.view.StructuredEditorModel;
 import ru.ipo.structurededitor.view.autocomplete.AutoCompleteElement;
+import ru.ipo.structurededitor.view.editors.settings.AbstractDSLBeanSettings;
+import ru.ipo.structurededitor.view.editors.settings.DSLBeanSettings;
 import ru.ipo.structurededitor.view.elements.*;
 
 import javax.swing.*;
@@ -26,21 +29,9 @@ public class DSLBeanEditor extends FieldEditor implements PropertyChangeListener
 
     private final boolean isAbstract;
 
-    private final VisibleElementAction removeAction =
-            new VisibleElementAction("Удалить объект", "delete.png", KeyStroke.getKeyStroke("control DELETE")) { //TODO get text from data
-                @Override
-                public void run(StructuredEditorModel model) {
-                    setValue(null);
-                    updateElement(); //don't know why set does not do update
-                }
-            };
+    private VisibleElementAction removeAction;
 
-    private final VisibleElementAction createBeanAction = new VisibleElementAction("Создать объект", "add.png", KeyStroke.getKeyStroke("ENTER")) { //TODO get text from data
-        @Override
-        public void run(StructuredEditorModel model) {
-            initializeNewBean(getMaskedFieldType());
-        }
-    };
+    private VisibleElementAction createBeanAction;
 
     private void initializeNewBean(Class<?> beanType) {
         DSLBean bean;
@@ -54,11 +45,28 @@ public class DSLBeanEditor extends FieldEditor implements PropertyChangeListener
         updateElement(); //don't know why set does not do update
     }
 
-    public DSLBeanEditor(Object o, String fieldName, FieldMask mask, StructuredEditorModel model) {
-        super(o, fieldName, mask, true, model);
+    public DSLBeanEditor(Object o, String fieldName, FieldMask mask, StructuredEditorModel model, EditorSettings settings) {
+        super(o, fieldName, mask, model, settings);
         setModificationVector(model.getModificationVector());
 
         isAbstract = Modifier.isAbstract(getMaskedFieldType().getModifiers());
+
+        if (isSetNullActionNeeded())
+            removeAction = new VisibleElementAction(getSetNullActionText(), "delete.png", KeyStroke.getKeyStroke("control DELETE")) {
+                @Override
+                public void run(StructuredEditorModel model) {
+                    setValue(null);
+                    updateElement(); //don't know why set does not do update
+                }
+            };
+
+        if (!isAbstract)
+            createBeanAction = new VisibleElementAction(getSettings().getCreateBeanActionText(), "add.png", KeyStroke.getKeyStroke("ENTER")) {
+                @Override
+                public void run(StructuredEditorModel model) {
+                    initializeNewBean(getMaskedFieldType());
+                }
+            };
 
         ContainerElement ce = new ContainerElement(model, createInnerComponent());
         setElement(ce);
@@ -80,7 +88,7 @@ public class DSLBeanEditor extends FieldEditor implements PropertyChangeListener
     }
 
     private VisibleElement createNullElement() {
-        TextElement element = new TextElement(getModel(), "[пусто]"); //TODO get text from data
+        TextElement element = new TextElement(getModel(), getSettings().getNullText());
 
         element.addAction(createBeanAction);
 
@@ -91,6 +99,12 @@ public class DSLBeanEditor extends FieldEditor implements PropertyChangeListener
         AutoCompleteTextElement element = new AutoCompleteTextElement(getModel(), getAutoCompleteElements());
 
         element.addPropertyChangeListener("selectedValue", this);
+
+        AbstractDSLBeanSettings abstractSettings = getAbstractSettings();
+
+        element.setShowPopupActionText(abstractSettings.getSelectVariantActionText());
+        element.setEmptyText(abstractSettings.getNullValueText());
+        element.setNullText(abstractSettings.getNullValueText());
 
         return element;
     }
@@ -158,5 +172,21 @@ public class DSLBeanEditor extends FieldEditor implements PropertyChangeListener
                 updateElement();
             }
         }
+    }
+
+    private DSLBeanSettings getSettings() {
+        return getSettings(DSLBeanSettings.class);
+    }
+
+    private AbstractDSLBeanSettings getAbstractSettings() {
+        return getSettings(AbstractDSLBeanSettings.class);
+    }
+
+    private boolean isSetNullActionNeeded() {
+        return isAbstract || getSettings().isNullAllowed();
+    }
+
+    private String getSetNullActionText() {
+        return isAbstract ? getAbstractSettings().getSetNullActionText() : getSettings().getSetNullActionText();
     }
 }

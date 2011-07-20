@@ -2,9 +2,9 @@ package ru.ipo.structurededitor.controller;
 
 import ru.ipo.structurededitor.Defaults;
 import ru.ipo.structurededitor.model.DSLBean;
+import ru.ipo.structurededitor.model.EditorSettings;
 import ru.ipo.structurededitor.view.StructuredEditorModel;
 import ru.ipo.structurededitor.view.editors.FieldEditor;
-import ru.ipo.structurededitor.view.editors.StringEditor;
 
 import java.beans.BeanInfo;
 import java.beans.Introspector;
@@ -53,11 +53,6 @@ public class EditorsRegistry {
         this.defaultEditor = defaultEditor;
     }
 
-
-    private String getKey(Class<? extends DSLBean> beanClass, String propertyName) {
-        return beanClass.getName() + "." + propertyName;
-    }
-
     /**
      * Задаем редактор для всех полей определенного типа
      *
@@ -83,8 +78,7 @@ public class EditorsRegistry {
      * @param model        модель редактора
      * @return редактор для свойства
      */
-    public FieldEditor getEditor(Class<? extends DSLBean> beanClass, String propertyName, Object obj, FieldMask mask,
-                                 boolean singleLined, StructuredEditorModel model) {
+    public FieldEditor getEditor(Class<? extends DSLBean> beanClass, String propertyName, Object obj, FieldMask mask, StructuredEditorModel model, EditorSettings settings) {
         try {
 
             Class<? extends FieldEditor> pec;
@@ -110,29 +104,35 @@ public class EditorsRegistry {
                         pec = hooked;
                     }
                     if (pec != null)
-                        return createEditorInstance(pec, obj, propertyName, mask, singleLined, model);
+                        return createEditorInstance(pec, obj, propertyName, mask, model, settings);
                     break;
                 }
             }
-            return createEditorInstance(defaultEditor, obj, propertyName, mask, singleLined, model);
+            return createEditorInstance(defaultEditor, obj, propertyName, mask, model, settings);
         } catch (Exception e) {
             throw new Error("Failed to create editor: ", e);
         }
     }
 
-    private FieldEditor createEditorInstance(Class<? extends FieldEditor> pec, Object obj, String propertyName,
-                                             FieldMask mask, boolean singleLined, StructuredEditorModel model)
-            throws NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
+    private FieldEditor createEditorInstance(
+            Class<? extends FieldEditor> pec,
+            Object obj, String propertyName,
+            FieldMask mask,
+            StructuredEditorModel model,
+            EditorSettings settings
+    ) throws NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
+
         final Constructor<? extends FieldEditor> c;
-        if (pec == StringEditor.class) {
-            c = pec.getConstructor(Object.class, String.class, FieldMask.class,
-                    boolean.class, StructuredEditorModel.class);
-            return c.newInstance(obj, propertyName, mask, singleLined, model);
-        } else {
-            c = pec.getConstructor(Object.class, String.class, FieldMask.class,
-                    StructuredEditorModel.class);
-            return c.newInstance(obj, propertyName, mask, model);
-        }
+
+        c = pec.getConstructor(
+                Object.class,
+                String.class,
+                FieldMask.class,
+                StructuredEditorModel.class,
+                EditorSettings.class
+        );
+
+        return c.newInstance(obj, propertyName, mask, model, settings);
     }
 
     public EditorsRegistry() {
