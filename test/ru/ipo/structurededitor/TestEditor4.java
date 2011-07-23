@@ -7,7 +7,6 @@ import ru.ipo.structurededitor.view.StructuredEditorModel;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.image.ByteLookupTable;
 
 /**
  * Created by IntelliJ IDEA.

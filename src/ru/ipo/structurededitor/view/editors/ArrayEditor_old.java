@@ -306,7 +306,7 @@
 //                FieldEditor ed = createEditorInstance(0, arrayElement.getModel());
 //                editors.add(ed);
 //                arrayElement.add(ed.getElement());
-//                //arrayElement.add(new TextElement(model,"Пустой массив"));
+//                //arrayElement.add(new TextElement(model,"Empty array"));
 //                PropertyDescriptor pd = new PropertyDescriptor(getFieldName(), getObject().getClass());
 //                Method wm = pd.getWriteMethod();
 //                Object arr = Array.newInstance(pd.getPropertyType().getComponentType(), 1);
