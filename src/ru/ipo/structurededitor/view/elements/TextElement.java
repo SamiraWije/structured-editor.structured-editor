@@ -168,11 +168,19 @@ public class TextElement extends VisibleElement {
 
     public void setEmptyText(String emptyText) {
         this.emptyText = emptyText;
+
+        setHeight(countHeight());
+        setWidth(countWidth());
+
         getModel().repaint();
     }
 
     public void setNullText(String nullText) {
         this.nullText = nullText;
+
+        setHeight(countHeight());
+        setWidth(countWidth());
+
         getModel().repaint();
     }
 
