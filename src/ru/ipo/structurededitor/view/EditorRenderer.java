@@ -36,7 +36,6 @@ public class EditorRenderer {
         else
             layout = editableBean.getLayout();
         renderResult = render(layout, editableBean);
-        //model.setFocusedElement(renderResult);
     }
 
     public VisibleElement getRenderResult() {

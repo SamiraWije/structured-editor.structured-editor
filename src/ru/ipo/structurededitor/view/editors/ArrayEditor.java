@@ -45,8 +45,6 @@ public class ArrayEditor extends FieldEditor {
         super(o, fieldName, mask, model, settings);
         this.itemsSettings = itemsSettings;
 
-        setModificationVector(model.getModificationVector());
-
         final CompositeElement arrayElement = new CompositeElement(model, orientation, spaceChar);
 
         setElement(arrayElement);
@@ -70,7 +68,7 @@ public class ArrayEditor extends FieldEditor {
 
     @SuppressWarnings({"SuspiciousSystemArraycopy"})
     private void addElementToArray(int newIndex) {
-        Class<?> fieldType = getMaskedFieldType();
+        Class<?> fieldType = getFieldType();
         Class<?> componentType = fieldType.getComponentType();
 
         //get value
@@ -186,7 +184,7 @@ public class ArrayEditor extends FieldEditor {
         @Override
         public void run(StructuredEditorModel model) {
             //delete element in the index
-            Class<?> fieldType = getMaskedFieldType();
+            Class<?> fieldType = getFieldType();
             Class<?> componentType = fieldType.getComponentType();
 
             //get value

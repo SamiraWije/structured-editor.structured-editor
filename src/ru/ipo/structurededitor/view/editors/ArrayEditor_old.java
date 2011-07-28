@@ -3,7 +3,7 @@
 //import ru.ipo.structurededitor.controller.ArrayFieldMask;
 //import ru.ipo.structurededitor.controller.EditorsRegistry;
 //import ru.ipo.structurededitor.controller.Modification;
-//import ru.ipo.structurededitor.controller.ModificationVector;
+//import ru.ipo.structurededitor.controller.ModificationHistory;
 //import ru.ipo.structurededitor.model.DSLBean;
 //import ru.ipo.structurededitor.view.StructuredEditorModel;
 //import ru.ipo.structurededitor.view.elements.ArrayElement;
@@ -35,7 +35,7 @@
 //        this.spaceChar = spaceChar;
 //        this.singleLined = singleLined;
 //        final ArrayElement arrayElement = new ArrayElement(model, orientation, spaceChar);
-//        setModificationVector(model.getModificationVector());
+//        setModificationHistory(model.getModificationHistory());
 //
 //        arrayElement.addKeyListener(new KeyListener() {
 //            public void keyTyped(KeyEvent e) {
@@ -44,7 +44,7 @@
 //
 //            public void buttonDelete() {
 //                try {
-//                    ModificationVector modificationVector = getModificationVector();
+//                    ModificationHistory modificationVector = getModificationHistory();
 //                    int countItems = arrayElement.getChildrenCount();
 //                    if (countItems > 1) {
 //
@@ -99,7 +99,7 @@
 //
 //            public void buttonInsert() {
 //                try {
-//                    ModificationVector modificationVector = getModificationVector();
+//                    ModificationHistory modificationVector = getModificationHistory();
 //                    int countItems = arrayElement.getChildrenCount();
 //                    //Adding a new element
 //                    VisibleElement currentItem = model.getFocusedElement();
@@ -145,7 +145,7 @@
 //
 //            public void buttonEnter() {
 //                try {
-//                    ModificationVector modificationVector = getModificationVector();
+//                    ModificationHistory modificationVector = getModificationHistory();
 //                    int countItems = arrayElement.getChildrenCount();
 //                    //Adding a new element
 //                    VisibleElement currentItem;

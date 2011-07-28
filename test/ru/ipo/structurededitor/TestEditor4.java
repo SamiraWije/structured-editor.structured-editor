@@ -1,5 +1,6 @@
 package ru.ipo.structurededitor;
 
+import ru.ipo.structurededitor.controller.ModificationHistory;
 import ru.ipo.structurededitor.model.DSLBean;
 import ru.ipo.structurededitor.model.DSLBeansRegistry;
 import ru.ipo.structurededitor.testLang.testLang.*;
@@ -7,6 +8,8 @@ import ru.ipo.structurededitor.view.StructuredEditorModel;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 /**
  * Created by IntelliJ IDEA.
@@ -31,32 +34,42 @@ public class TestEditor4 {
 
         f.add(new JScrollPane(structuredEditor), BorderLayout.CENTER);
         f.add(structuredEditor.getActionsListComponent(), BorderLayout.SOUTH);
+        f.add(createButtonsPanel(structuredEditor), BorderLayout.NORTH);
 
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         f.setSize(640, 480);
         f.setLocationRelativeTo(null);
         f.setVisible(true);
+    }
 
-        /*f.addKeyListener(new KeyListener() {
-            public void keyTyped(KeyEvent e) {
+    private JPanel createButtonsPanel(StructuredEditor structuredEditor) {
+        JPanel panel = new JPanel(new FlowLayout());
+        final JButton undo = new JButton("undo");
+        final JButton redo = new JButton("redo");
+
+        panel.add(undo);
+        panel.add(redo);
+
+        final StructuredEditorModel model = structuredEditor.getModel();
+        final ModificationHistory modificationHistory = model.getModificationHistory();
+
+        undo.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                modificationHistory.undo();
+                model.updateModel();
             }
+        });
 
-            public void keyPressed(KeyEvent e) {
-                ((CompositeElement)model.getRootElement()).add(new TextElement(TestEditor.this.model, "!!!"),0);
-
-                System.out.println("e.getKeyCode() = " + e.getKeyCode());
-                System.out.println("e.getKeyChar() = '" + e.getKeyChar() + "' (" + (int)e.getKeyChar() + ")");
-                System.out.println("e.getModifiers() = " + e.getModifiers());
-                System.out.println("e.getModifiersEx() = " + e.getModifiersEx());
-
-                System.out.println();
+        redo.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                modificationHistory.redo();
+                model.updateModel();
             }
+        });
 
-            public void keyReleased(KeyEvent e) {
-            }
-        });*/
-
-        //model.getRootElement().gainFocus(new TextPosition(0,0), false, false);
+        return panel;
     }
 
     private StructuredEditorModel createModel(DSLBean bean2) {

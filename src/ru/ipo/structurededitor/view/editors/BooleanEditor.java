@@ -1,10 +1,16 @@
 package ru.ipo.structurededitor.view.editors;
 
+import ru.ipo.structurededitor.actions.VisibleElementAction;
 import ru.ipo.structurededitor.controller.FieldMask;
 import ru.ipo.structurededitor.model.EditorSettings;
 import ru.ipo.structurededitor.view.StructuredEditorModel;
-import ru.ipo.structurededitor.view.elements.BooleanEditorElement;
+import ru.ipo.structurededitor.view.editors.settings.BooleanSettings;
+import ru.ipo.structurededitor.view.elements.TextElement;
 
+import javax.swing.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
@@ -16,35 +22,42 @@ import java.beans.PropertyChangeListener;
  */
 public class BooleanEditor extends FieldEditor {
 
-    //public
-
     public BooleanEditor(Object o, String fieldName, FieldMask mask, StructuredEditorModel model, EditorSettings settings) {
         super(o, fieldName, mask, model, settings);
-        setModificationVector(model.getModificationVector());
-        String bool_str = BooleanEditorElement.RUS_FALSE;
-        Object val = getValue();
-        if (val == null)
-            setValue(false);
-        else if ((Boolean) val) {
-            bool_str = BooleanEditorElement.RUS_TRUE;
-        }
-        final BooleanEditorElement editorElement = new BooleanEditorElement(model, bool_str);
-        editorElement.addPropertyChangeListener("text", new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent evt) {
-                String val = editorElement.getText();
-                if (val.equals(BooleanEditorElement.RUS_TRUE))
-                    setValue(true);
-                else
+
+        final TextElement editorElement = new TextElement(model);
+
+        editorElement.addAction(new VisibleElementAction(getSettings().getChangeActionText(), "properties.png", KeyStroke.getKeyStroke("SPACE")) {
+            @Override
+            public void run(StructuredEditorModel model) {
+                Boolean value = (Boolean) getValue();
+                if (value != null && value)
                     setValue(false);
+                else
+                    setValue(true);
+                updateElement();
+                model.moveCaretToElement(editorElement);
             }
         });
+
         setElement(editorElement);
+
+        updateElement();
+    }
+
+    private BooleanSettings getSettings() {
+        return getSettings(BooleanSettings.class);
     }
 
     @Override
     protected void updateElement() {
-        BooleanEditorElement editorElement = (BooleanEditorElement) getElement();
-        editorElement.setText((Boolean) getValue() ? BooleanEditorElement.RUS_TRUE : BooleanEditorElement.RUS_FALSE);
+        TextElement editorElement = (TextElement)getElement();
+        Boolean value = (Boolean) getValue();
+
+        if (value == null)
+            value = false; //TODO think of editing of null value for Boolean type
+
+        editorElement.setText(value ? getSettings().getTrueText() : getSettings().getFalseText());
     }
 
 }

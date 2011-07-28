@@ -1,7 +1,7 @@
 package ru.ipo.structurededitor.view;
 
 import ru.ipo.structurededitor.controller.EditorsRegistry;
-import ru.ipo.structurededitor.controller.ModificationVector;
+import ru.ipo.structurededitor.controller.ModificationHistory;
 import ru.ipo.structurededitor.model.DSLBean;
 import ru.ipo.structurededitor.model.DSLBeansRegistry;
 import ru.ipo.structurededitor.view.elements.VisibleElement;
@@ -23,10 +23,10 @@ public class StructuredEditorModel {
 
     public void setApp(Object app) {
         this.app = app;
-        setRootElement(new EditorRenderer(this, o).getRenderResult());
+        updateModel();
     }
 
-    Object app;
+    private Object app;
 
     public boolean isView() {
         return view;
@@ -34,7 +34,7 @@ public class StructuredEditorModel {
 
     public void setView(boolean view) {
         this.view = view;
-        setRootElement(new EditorRenderer(this, o).getRenderResult());
+        updateModel();
     }
 
     private boolean view = false;
@@ -70,7 +70,7 @@ public class StructuredEditorModel {
 
     public void setEditorsRegistry(EditorsRegistry editorsRegistry) {
         this.editorsRegistry = editorsRegistry;
-        setRootElement(new EditorRenderer(this, o).getRenderResult());
+        updateModel();
     }
 
     private EditorsRegistry editorsRegistry;
@@ -83,44 +83,42 @@ public class StructuredEditorModel {
 
     public void setBeansRegistry(DSLBeansRegistry beansRegistry) {
         this.beansRegistry = beansRegistry;
-        setRootElement(new EditorRenderer(this, o).getRenderResult());
+        updateModel();
     }
 
     private DSLBean o;
 
     public StructuredEditorModel(DSLBean o) {
-        this(o, new ModificationVector());
+        this(o, new ModificationHistory());
     }
 
-    public StructuredEditorModel(DSLBean o, ModificationVector modificationVector) {
+    public StructuredEditorModel(DSLBean o, ModificationHistory modificationHistory) {
         this.o = o;
-        setModificationVector(modificationVector);
+        this.modificationHistory = modificationHistory;
         editorsRegistry = new EditorsRegistry();
         beansRegistry = new DSLBeansRegistry();
 
-        setRootElement(new EditorRenderer(this, o).getRenderResult());
+        updateModel();
+    }
 
+    public void updateModel() {
+        setRootElement(new EditorRenderer(this, o).getRenderResult());
     }
 
     public void setObject(DSLBean o) {
         this.o = o;
+        updateModel();
     }
 
     public DSLBean getObject() {
         return o;
     }
 
-    public ModificationVector getModificationVector() {
-        return modificationVector;
+    public ModificationHistory getModificationHistory() {
+        return modificationHistory;
     }
 
-    public void setModificationVector(ModificationVector modificationVector) {
-
-        this.modificationVector = modificationVector;
-    }
-
-    private ModificationVector modificationVector;
-
+    private ModificationHistory modificationHistory;
 
     private EventListenerList listenerList = new EventListenerList();
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);

@@ -30,7 +30,6 @@ public class StringEditor extends FieldEditor {
 
     public StringEditor(Object o, String fieldName, FieldMask mask, StructuredEditorModel model, EditorSettings settings) {
         super(o, fieldName, mask, model, settings);
-        setModificationVector(model.getModificationVector());
 
         final TextEditorElement editorElement;
         editorElement = new TextEditorElement(model, null, getSettings().isSingleLine());

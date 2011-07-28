@@ -2,7 +2,7 @@ package ru.ipo.structurededitor.view.editors;
 
 import ru.ipo.structurededitor.controller.FieldMask;
 import ru.ipo.structurededitor.controller.Modification;
-import ru.ipo.structurededitor.controller.ModificationVector;
+import ru.ipo.structurededitor.controller.ModificationHistory;
 import ru.ipo.structurededitor.model.DSLBean;
 import ru.ipo.structurededitor.model.EditorSettings;
 import ru.ipo.structurededitor.view.StructuredEditorModel;
@@ -10,13 +10,15 @@ import ru.ipo.structurededitor.view.elements.VisibleElement;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 
 
 /**
- * Базовый класс для компонент редактирования ПОЯ при помощи нового редактора
+ * Базовый класс для компонент редактирования ПОЯ при помощи редактора
  */
 public abstract class FieldEditor {
 
+    //TODO think may be better replace Object with DSLBean
     private Object o;
     private String fieldName;
     private final StructuredEditorModel model;
@@ -24,8 +26,6 @@ public abstract class FieldEditor {
     private VisibleElement editorElement;
 
     private FieldMask mask;
-
-    private ModificationVector modificationVector;
 
     private EditorSettings settings;
 
@@ -35,8 +35,6 @@ public abstract class FieldEditor {
         this.mask = mask;
         this.model = model;
         this.settings = settings;
-
-        //empty = forcedGetValue() == null;
     }
 
     public FieldMask getMask() {
@@ -46,10 +44,6 @@ public abstract class FieldEditor {
     public void setMask(FieldMask mask) {
         this.mask = mask;
         updateElement();
-    }
-
-    public void setModificationVector(ModificationVector modificationVector) {
-        this.modificationVector = modificationVector;
     }
 
     public VisibleElement getElement() {
@@ -72,59 +66,57 @@ public abstract class FieldEditor {
         return fieldName;
     }
 
-    public ModificationVector getModificationVector() {
-        return modificationVector;
+    protected void setValue(Object value) {
+        System.out.println("Setting value: " + value);
+
+        setValue(value, true);
     }
 
-    protected void setValue(Object value) {
+    protected void setValue(Object value, boolean userIntended) {
         try {
             PropertyDescriptor pd = new PropertyDescriptor(getFieldName(), getObject().getClass());
             Method rm = pd.getReadMethod();
-            Object val = rm.invoke(getObject());
             Method wm = pd.getWriteMethod();
-            if (value == null && mask == null) {
-                if (val instanceof Integer || val instanceof Double)
-                    value = 0;
-                if (modificationVector != null)
-                    modificationVector.add(
-                            new Modification((DSLBean) getObject(), getFieldName(), val, value, null));
-                wm.invoke(getObject(), value);
-                return;
-            }
-            if (mask != null) {
+            Object oldUnmaskedValue = rm.invoke(getObject());
 
-                Object oldItem = mask.get(val);
-                Object oldVal = val;
-                val = mask.set(val, value);
-                if (oldVal == val) {
-                    if (modificationVector != null)
-                        modificationVector.add(new Modification((DSLBean) getObject(), getFieldName(),
-                                oldItem, value, mask));
-                } else {
-                    wm.invoke(getObject(), val);
-                    if (modificationVector != null)
-                        modificationVector.add(new Modification((DSLBean) getObject(), getFieldName(), oldVal, val, null));
-                }
-            } else {
+            Object oldValue;
+            if (mask != null)
+                oldValue = mask.get(oldUnmaskedValue);
+            else
+                oldValue = oldUnmaskedValue;
+
+            if (oldUnmaskedValue == value)
+                return;
+            if (oldUnmaskedValue != null && oldUnmaskedValue.equals(value))
+                return;
+
+            ModificationHistory modificationHistory = model.getModificationHistory();
+
+            modificationHistory.add(new Modification(
+                    (DSLBean) getObject(),
+                    fieldName,
+                    mask,
+                    oldValue,
+                    value,
+                    userIntended
+            ));
+
+            if (mask == null)
                 wm.invoke(getObject(), value);
-                if (modificationVector != null)
-                    modificationVector.add(new Modification((DSLBean) getObject(), getFieldName(), val, value, null));
-            }
+            else
+                wm.invoke(getObject(), mask.set(oldUnmaskedValue, value));
 
         } catch (Exception e1) {
             throw new Error("Fail in FieldEditor.setValue()");
         }
-
-        //updateElement();
     }
 
     protected Object getValue() {
-        //if (empty) return null;
         try {
             PropertyDescriptor pd = new PropertyDescriptor(getFieldName(), getObject().getClass());
             Method wm = pd.getReadMethod();
             Object value = wm.invoke(getObject());
-            if (mask != null && value != null) {
+            if (mask != null) {
                 return mask.get(value);
             } else
                 return value;
@@ -133,7 +125,7 @@ public abstract class FieldEditor {
         }
     }
 
-    protected Class<?> getFieldType() {
+    private Class<?> getUnmaskedFieldType() {
         try {
             PropertyDescriptor pd = new PropertyDescriptor(getFieldName(), getObject().getClass());
             return pd.getPropertyType();
@@ -142,8 +134,8 @@ public abstract class FieldEditor {
         }
     }
 
-    protected Class<?> getMaskedFieldType() {
-        Class<?> fieldType = getFieldType();
+    protected Class<?> getFieldType() {
+        Class<?> fieldType = getUnmaskedFieldType();
         return mask == null ? fieldType : mask.getValueClass(fieldType);
     }
 
@@ -154,6 +146,7 @@ public abstract class FieldEditor {
     /**
      * Returns settings of the specified types. It is usually a good idea to implement getSettings() in
      * subclasses that calls getSettings(settingsClass)
+     *
      * @param settingsClass type of settings
      * @return settings
      */
@@ -161,7 +154,8 @@ public abstract class FieldEditor {
         if (settings == null) {
             try {
                 settings = settingsClass.newInstance();
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
 
         return (T) settings;

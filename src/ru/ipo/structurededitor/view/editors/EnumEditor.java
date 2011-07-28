@@ -62,8 +62,6 @@ public class EnumEditor extends FieldEditor {
     public EnumEditor(Object o, String fieldName, FieldMask mask, StructuredEditorModel model, EditorSettings settings) {
         super(o, fieldName, mask, model, settings);
 
-        setModificationVector(model.getModificationVector());
-
         ContainerElement element = new ContainerElement(model, createInnerElement());
 
         setElement(element);
@@ -97,7 +95,7 @@ public class EnumEditor extends FieldEditor {
     }
 
     private List<AutoCompleteElement> createCompletionElements() throws Exception {
-        Class<?> fieldType = getMaskedFieldType();
+        Class<?> fieldType = getFieldType();
         //call values() method to obtain array of values
         Method valuesMethod = fieldType.getMethod("values");
         Enum[] values = (Enum[]) valuesMethod.invoke(null);

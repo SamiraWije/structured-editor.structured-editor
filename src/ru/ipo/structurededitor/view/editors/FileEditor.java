@@ -24,9 +24,6 @@ public class FileEditor extends FieldEditor {
     public FileEditor(Object o, String fieldName, FieldMask mask, StructuredEditorModel model, EditorSettings settings) {
         super(o, fieldName, mask, model, settings);
 
-        //wtf ???
-        setModificationVector(model.getModificationVector());
-
         TextElement editorElement = new TextElement(model);
         setElement(editorElement);
 

@@ -7,7 +7,6 @@ import javax.swing.event.EventListenerList;
  * User: oleg
  * Date: 23.12.10
  * Time: 15:17
- * To change this template use File | Settings | File Templates.
  */
 public class ModificationEventSupport {
 

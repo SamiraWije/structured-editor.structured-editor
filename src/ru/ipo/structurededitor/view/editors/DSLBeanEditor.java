@@ -42,14 +42,13 @@ public class DSLBeanEditor extends FieldEditor implements PropertyChangeListener
         }
 
         setValue(bean);
-        updateElement(); //don't know why set does not do update
     }
 
     public DSLBeanEditor(Object o, String fieldName, FieldMask mask, StructuredEditorModel model, EditorSettings settings) {
         super(o, fieldName, mask, model, settings);
-        setModificationVector(model.getModificationVector());
 
-        isAbstract = Modifier.isAbstract(getMaskedFieldType().getModifiers());
+        final Class<?> beanType = getFieldType();
+        isAbstract = Modifier.isAbstract(beanType.getModifiers());
 
         if (isSetNullActionNeeded())
             removeAction = new VisibleElementAction(getSetNullActionText(), "delete.png", KeyStroke.getKeyStroke("control DELETE")) {
@@ -64,9 +63,17 @@ public class DSLBeanEditor extends FieldEditor implements PropertyChangeListener
             createBeanAction = new VisibleElementAction(getSettings().getCreateBeanActionText(), "add.png", KeyStroke.getKeyStroke("ENTER")) {
                 @Override
                 public void run(StructuredEditorModel model) {
-                    initializeNewBean(getMaskedFieldType());
+                    initializeNewBean(beanType);
+                    updateElement();
                 }
             };
+
+        //if null is not allowed, then set non-null value
+        if (!isAbstract && !getSettings().isNullAllowed()) {
+            if (getValue() == null) {
+                initializeNewBean(beanType);
+            }
+        }
 
         ContainerElement ce = new ContainerElement(model, createInnerComponent());
         setElement(ce);
@@ -117,7 +124,7 @@ public class DSLBeanEditor extends FieldEditor implements PropertyChangeListener
     }
 
     private List<AutoCompleteElement> getAutoCompleteElements() {
-        Class<? extends DSLBean> fieldType = getMaskedFieldType().asSubclass(DSLBean.class);
+        Class<? extends DSLBean> fieldType = getFieldType().asSubclass(DSLBean.class);
 
         List<Class<? extends DSLBean>> subclasses = getModel().getBeansRegistry().getAllSubclasses(fieldType, true);
 
@@ -167,10 +174,10 @@ public class DSLBeanEditor extends FieldEditor implements PropertyChangeListener
             Class<?> selectedBeanClass = (Class<?>) evt.getNewValue();
             if (selectedBeanClass != null)
                 initializeNewBean(selectedBeanClass);
-            else {
+            else
                 setValue(null);
-                updateElement();
-            }
+
+            updateElement();
         }
     }
 

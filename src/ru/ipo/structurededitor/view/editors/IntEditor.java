@@ -22,8 +22,6 @@ public class IntEditor extends FieldEditor {
     public IntEditor(Object o, String fieldName, FieldMask mask, StructuredEditorModel model, EditorSettings settings) {
         super(o, fieldName, mask, model, settings);
 
-        setModificationVector(model.getModificationVector());
-
         String text;
         Object val = getValue();
         if (val == null)

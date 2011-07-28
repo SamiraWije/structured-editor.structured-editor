@@ -24,9 +24,6 @@ public class DateEditor extends FieldEditor {
     public DateEditor(Object o, String fieldName, FieldMask mask, StructuredEditorModel model, EditorSettings settings) {
         super(o, fieldName, mask, model, settings);
 
-        //wtf ???
-        setModificationVector(model.getModificationVector());
-
         final TextElement editorElement = new TextElement(model);
         editorElement.addKeyListener(new KeyAdapter() {
             public void keyPressed(KeyEvent e) {
