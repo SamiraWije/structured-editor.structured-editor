@@ -30,6 +30,8 @@ public abstract class VisibleElement {
 
     private List<VisibleElementAction> actions = new ArrayList<VisibleElementAction>();
 
+    private String toolTipText = null;
+
     protected VisibleElement(StructuredEditorModel model) {
         this.model = model;
     }
@@ -281,5 +283,13 @@ public abstract class VisibleElement {
         }
 
         return allActions;
+    }
+
+    public String getToolTipText() {
+        return toolTipText;
+    }
+
+    public void setToolTipText(String toolTipText) {
+        this.toolTipText = toolTipText;
     }
 }

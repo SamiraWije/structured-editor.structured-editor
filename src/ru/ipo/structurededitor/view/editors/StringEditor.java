@@ -19,14 +19,7 @@ import java.beans.PropertyChangeListener;
  */
 public class StringEditor extends FieldEditor {
 
-    private final VisibleElementAction setNullAction = new VisibleElementAction("Удалить текст", "delete.png", KeyStroke.getKeyStroke("control DELETE")) {
-        @Override
-        public void run(StructuredEditorModel model) {
-            setValue(null);
-            updateElement();
-            getModel().moveCaretToElement(getElement());
-        }
-    };
+    private VisibleElementAction setNullAction;
 
     public StringEditor(Object o, String fieldName, FieldMask mask, StructuredEditorModel model, EditorSettings settings) {
         super(o, fieldName, mask, model, settings);
@@ -34,6 +27,23 @@ public class StringEditor extends FieldEditor {
         final TextEditorElement editorElement;
         editorElement = new TextEditorElement(model, null, getSettings().isSingleLine());
 
+        editorElement.setEmptyText(getSettings().getEmptyText());
+        editorElement.setNullText(getSettings().getNullText());
+        editorElement.setToolTipText(getSettings().getToolTipText());
+
+        initializeSetNullAction();
+
+        addTextChangedListener(editorElement);
+
+        setElement(editorElement);
+
+        if (getValue() == null && !getSettings().isNullAllowed())
+            setValue("", false);
+
+        updateElement();
+    }
+
+    private void addTextChangedListener(final TextEditorElement editorElement) {
         editorElement.addPropertyChangeListener("text", new PropertyChangeListener() {
             @Override
             public void propertyChange(PropertyChangeEvent evt) {
@@ -42,10 +52,19 @@ public class StringEditor extends FieldEditor {
                 updateSetNullActionVisibility(editorElement, newValue);
             }
         });
+    }
 
-        setElement(editorElement);
+    private void initializeSetNullAction() {
+        String actionText = getSettings().isNullAllowed() ? "Удалить текст" : "Очистить текст";
 
-        updateElement();
+        setNullAction = new VisibleElementAction(actionText, "delete.png", KeyStroke.getKeyStroke("control DELETE")) {
+            @Override
+            public void run(StructuredEditorModel model) {
+                setValue(getSettings().isNullAllowed() ? null : "");
+                updateElement();
+                getModel().moveCaretToElement(getElement());
+            }
+        };
     }
 
     private StringSettings getSettings() {

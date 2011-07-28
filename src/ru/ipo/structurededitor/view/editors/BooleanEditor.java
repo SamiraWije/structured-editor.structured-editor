@@ -8,11 +8,6 @@ import ru.ipo.structurededitor.view.editors.settings.BooleanSettings;
 import ru.ipo.structurededitor.view.elements.TextElement;
 
 import javax.swing.*;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 
 /**
  * Created by IntelliJ IDEA.

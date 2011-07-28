@@ -1,6 +1,7 @@
 package ru.ipo.structurededitor.testLang.testLang;
 
 import ru.ipo.structurededitor.model.*;
+import ru.ipo.structurededitor.view.editors.settings.StringSettings;
 
 import java.util.Arrays;
 
@@ -34,7 +35,7 @@ public class Bean2 implements DSLBean {
     public Cell getLayout() {
         return new Vert(
                 new ConstantCell("Пример редактора (это нередактируемый текст)"),
-                new Horiz(new ConstantCell("Строка текста: "), new FieldCell("field1")),
+                new Horiz(new ConstantCell("Строка текста: "), new FieldCell("field1", new StringSettings().withSingleLine(false))),
                 new Horiz(new ConstantCell("Целое число: "), new FieldCell("field2")),
                 new Horiz(new ConstantCell("Структурные данные: "), new FieldCell("field3")),
                 new Horiz(new ConstantCell("Вещественное число: "), new FieldCell("field4")),

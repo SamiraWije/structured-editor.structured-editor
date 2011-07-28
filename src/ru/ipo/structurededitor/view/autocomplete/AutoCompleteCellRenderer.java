@@ -43,7 +43,7 @@ public class AutoCompleteCellRenderer extends DefaultListCellRenderer {
                     .replaceAll("<", "&lt;")
                     .replaceAll(">", "&gt;");
 
-            value = DataShowUtils.htmlLayout("", "Не найдено: \"" + searchString + "\"");
+            value = DataShowUtils.htmlLayout("", "Не найдено: \"" + searchString + "\"", true);
 
             needIcon = false;
         } else {
@@ -55,10 +55,7 @@ public class AutoCompleteCellRenderer extends DefaultListCellRenderer {
             shortcut = highlightSearchString(shortcut);
             description = highlightSearchString(description);
 
-            value = DataShowUtils.htmlLayout(
-                    shortcut,
-                    description
-            );
+            value = DataShowUtils.htmlLayout(shortcut, description, false);
         }
 
         Component component = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);

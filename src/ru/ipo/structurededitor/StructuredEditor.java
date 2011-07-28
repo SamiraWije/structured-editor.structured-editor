@@ -52,6 +52,8 @@ public class StructuredEditor extends JComponent implements Scrollable {
         enableEvents(AWTEvent.MOUSE_EVENT_MASK);
 
         createActionsListComponent();
+
+        ToolTipManager.sharedInstance().registerComponent(this);
     }
 
     public StructuredEditor(StructuredEditorModel model, boolean view) {
@@ -236,5 +238,20 @@ public class StructuredEditor extends JComponent implements Scrollable {
 
         UIManager.put("AutoCompleteTextElement.unknownShortcut", new Color(0xDD3300));
         UIManager.put("AutoCompleteTextElement.knownShortcut", new Color(0x33DD00));
+    }
+
+    @Override
+    public String getToolTipText(MouseEvent event) {
+        int col = getUI().pixelsToX(event.getX());
+        int line = getUI().pixelsToY(event.getY());
+
+        if (col < 0)
+            col = 0;
+        if (line < 0)
+            line = 0;
+
+        VisibleElement elementByPosition = model.findElementByPosition(line, col);
+
+        return elementByPosition == null ? null : elementByPosition.getToolTipText();
     }
 }

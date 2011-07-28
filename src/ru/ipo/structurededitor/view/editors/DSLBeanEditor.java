@@ -33,7 +33,7 @@ public class DSLBeanEditor extends FieldEditor implements PropertyChangeListener
 
     private VisibleElementAction createBeanAction;
 
-    private void initializeNewBean(Class<?> beanType) {
+    private void initializeNewBean(Class<?> beanType, boolean userIntended) {
         DSLBean bean;
         try {
             bean = (DSLBean) beanType.newInstance();
@@ -41,7 +41,7 @@ public class DSLBeanEditor extends FieldEditor implements PropertyChangeListener
             throw new Error("Failed to instantiate bean");
         }
 
-        setValue(bean);
+        setValue(bean, userIntended);
     }
 
     public DSLBeanEditor(Object o, String fieldName, FieldMask mask, StructuredEditorModel model, EditorSettings settings) {
@@ -55,7 +55,7 @@ public class DSLBeanEditor extends FieldEditor implements PropertyChangeListener
                 @Override
                 public void run(StructuredEditorModel model) {
                     setValue(null);
-                    updateElement(); //don't know why set does not do update
+                    updateElement();
                 }
             };
 
@@ -63,7 +63,7 @@ public class DSLBeanEditor extends FieldEditor implements PropertyChangeListener
             createBeanAction = new VisibleElementAction(getSettings().getCreateBeanActionText(), "add.png", KeyStroke.getKeyStroke("ENTER")) {
                 @Override
                 public void run(StructuredEditorModel model) {
-                    initializeNewBean(beanType);
+                    initializeNewBean(beanType, true);
                     updateElement();
                 }
             };
@@ -71,7 +71,7 @@ public class DSLBeanEditor extends FieldEditor implements PropertyChangeListener
         //if null is not allowed, then set non-null value
         if (!isAbstract && !getSettings().isNullAllowed()) {
             if (getValue() == null) {
-                initializeNewBean(beanType);
+                initializeNewBean(beanType, false);
             }
         }
 
@@ -173,7 +173,7 @@ public class DSLBeanEditor extends FieldEditor implements PropertyChangeListener
         if (evt.getPropertyName().equals("selectedValue")) {
             Class<?> selectedBeanClass = (Class<?>) evt.getNewValue();
             if (selectedBeanClass != null)
-                initializeNewBean(selectedBeanClass);
+                initializeNewBean(selectedBeanClass, true);
             else
                 setValue(null);
 

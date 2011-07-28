@@ -13,7 +13,7 @@ public class AbstractDSLBeanSettings implements EditorSettings {
     /**
      * Текст в редакторе
      */
-    private String nullValueText = "Ничего не выбрано (Ctrl+Space для выбора)";
+    private String nullValueText = "[Ничего не выбрано]";
     /**
      * Текст действия для установки null
      */

@@ -1,6 +1,7 @@
 package ru.ipo.structurededitor.test.autocomplete;
 
 import ru.ipo.structurededitor.model.*;
+import ru.ipo.structurededitor.view.editors.settings.StringSettings;
 
 /**
  * Created by IntelliJ IDEA.
@@ -50,7 +51,7 @@ public class RootBean implements DSLBean {
     @Override
     public Cell getLayout() {
         return new Vert(
-                new Horiz(new ConstantCell("String ="), new FieldCell("stringValue")),
+                new Horiz(new ConstantCell("String ="), new FieldCell("stringValue", new StringSettings().withSingleLine(false))),
                 new Horiz(new ConstantCell("Int ="), new FieldCell("intValue")),
                 new Horiz(new ConstantCell("Abstract ="), new FieldCell("abstractValue")),
                 new Horiz(new ConstantCell("EnumEx ="), new FieldCell("enumExample"))

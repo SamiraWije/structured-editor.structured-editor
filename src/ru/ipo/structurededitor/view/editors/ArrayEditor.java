@@ -8,6 +8,7 @@ import ru.ipo.structurededitor.controller.MaskComposition;
 import ru.ipo.structurededitor.model.DSLBean;
 import ru.ipo.structurededitor.model.EditorSettings;
 import ru.ipo.structurededitor.view.StructuredEditorModel;
+import ru.ipo.structurededitor.view.editors.settings.ArraySettings;
 import ru.ipo.structurededitor.view.elements.CompositeElement;
 import ru.ipo.structurededitor.view.elements.ContainerElement;
 import ru.ipo.structurededitor.view.elements.TextElement;
@@ -31,15 +32,7 @@ public class ArrayEditor extends FieldEditor {
 
     private EditorSettings itemsSettings;
 
-    private final VisibleElementAction setNullValueAction = new VisibleElementAction("Удалить массив", "delete.png", KeyStroke.getKeyStroke("control DELETE")) { //TODO set normal text
-        @Override
-        public void run(StructuredEditorModel model) {
-            setValue(null);
-            updateElement();
-
-            getModel().moveCaretToElement(getElement());
-        }
-    };
+    private VisibleElementAction setNullValueAction;
 
     public ArrayEditor(Object o, String fieldName, FieldMask mask, CompositeElement.Orientation orientation, char spaceChar, final StructuredEditorModel model, EditorSettings settings, EditorSettings itemsSettings) {
         super(o, fieldName, mask, model, settings);
@@ -49,7 +42,34 @@ public class ArrayEditor extends FieldEditor {
 
         setElement(arrayElement);
 
+        if (getValue() == null && ! getSettings().isNullAllowed())
+            setValue(createZeroArray(), false);
+
+        createSetNullValueAction();
+
         updateElement();
+    }
+
+    private void createSetNullValueAction() {
+        String actionText = getSettings().getRemoveAllActionText();
+
+        setNullValueAction = new VisibleElementAction(actionText, "delete.png", KeyStroke.getKeyStroke("control DELETE")) {
+            @Override
+            public void run(StructuredEditorModel model) {
+                if (getSettings().isNullAllowed())
+                    setValue(null);
+                else
+                    setValue(createZeroArray());
+
+                updateElement();
+
+                getModel().moveCaretToElement(getElement());
+            }
+        };
+    }
+
+    private Object createZeroArray() {
+        return Array.newInstance(getFieldType().getComponentType(), 0);
     }
 
     /*private void addAddAction(VisibleElement arrayElement) {
@@ -74,7 +94,7 @@ public class ArrayEditor extends FieldEditor {
         //get value
         Object value = getValue();
         if (value == null)
-            value = Array.newInstance(componentType, 0);
+            value = createZeroArray();
 
         //add element to the array
         int length = Array.getLength(value);
@@ -104,7 +124,8 @@ public class ArrayEditor extends FieldEditor {
     }
 
     private VisibleElement createNullElement() {
-        TextElement nullElement = new TextElement(getModel(), "[Нет массива]"); //TODO set normal text
+        TextElement nullElement = new TextElement(getModel(), null);
+        nullElement.setNullText(getSettings().getNullText());
 
         nullElement.addAction(new InsertArrayElementAction(0));
 
@@ -112,7 +133,8 @@ public class ArrayEditor extends FieldEditor {
     }
 
     private VisibleElement createZeroElement() {
-        TextElement zeroElement = new TextElement(getModel(), "[Нет элементов массива]"); //TODO set normal text
+        TextElement zeroElement = new TextElement(getModel(), null);
+        zeroElement.setNullText(getSettings().getZeroElementsText());
 
         zeroElement.addAction(new InsertArrayElementAction(0));
         zeroElement.addAction(setNullValueAction);
@@ -159,7 +181,7 @@ public class ArrayEditor extends FieldEditor {
         private int index;
 
         public InsertArrayElementAction(int index) {
-            super("Вставить элемент массива", "add.png", KeyStroke.getKeyStroke("ENTER")); //TODO set normal text
+            super(getSettings().getInsertActionText(), "add.png", KeyStroke.getKeyStroke("ENTER"));
             this.index = index;
         }
 
@@ -176,7 +198,7 @@ public class ArrayEditor extends FieldEditor {
         private int index;
 
         public DeleteArrayElementAction(int index) {
-            super("Удалить элемент массива", "delete.png", KeyStroke.getKeyStroke("control DELETE")); //TODO set normal text
+            super(getSettings().getRemoveActionText(), "delete.png", KeyStroke.getKeyStroke("control DELETE"));
             this.index = index;
         }
 
@@ -203,6 +225,10 @@ public class ArrayEditor extends FieldEditor {
             int selectIndex = index == 0 ? 0 : index - 1;
             getModel().moveCaretToElement(getElement().getChild(selectIndex));
         }
+    }
+
+    private ArraySettings getSettings() {
+        return getSettings(ArraySettings.class);
     }
 
 }

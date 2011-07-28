@@ -362,7 +362,7 @@ public class DataShowUtils {
         return "unknown(0x" + Integer.toString(keyCode, 16) + ")";
     }
 
-    public static String htmlLayout(String leftText, String rightText) {
+    public static String htmlLayout(String leftText, String rightText, boolean error) {
         StringBuilder sb = new StringBuilder();
 
 //        sb
@@ -374,7 +374,7 @@ public class DataShowUtils {
 //                .append("</span>")
 //                .append("</html>");
 
-        if (leftText == null || leftText.length() == 0)
+        if (error)
             sb
                     .append("<html>")
                     .append("<span style='color:" + RIGHT_TEXT_COLOR_ERR + "; font-weight:100'>")

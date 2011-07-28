@@ -46,7 +46,15 @@ public class EditorRenderer {
 
         if (layout instanceof ConstantCell) {
             ConstantCell cell = (ConstantCell) layout;
-            return new TextElement(model, cell.getText());
+            TextElement textElement = new TextElement(model, cell.getText());
+
+            ConstCellSettings settings = cell.getSettings();
+            if (settings.getTextProperties() != null)
+                textElement.setTextProperties(settings.getTextProperties());
+
+            textElement.setToolTipText(settings.getToolTipText());
+
+            return textElement;
         } else if (layout instanceof FieldCell) {
             FieldCell fieldCell = (FieldCell) layout;
             FieldEditor ed = reg.getEditor(

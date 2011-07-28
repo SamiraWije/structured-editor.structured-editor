@@ -29,7 +29,7 @@ public class ActionsCellRenderer extends DefaultListCellRenderer {
         else
             strokeDescription = "";
 
-        value = DataShowUtils.htmlLayout(action.getActionText(), strokeDescription);
+        value = DataShowUtils.htmlLayout(action.getActionText(), strokeDescription, false);
 
         JLabel renderer = (JLabel)super.getListCellRendererComponent(list, value, index, index == ((ActionsListComponent)list).getHighlightIndex(), false);
         renderer.setIcon(action.getIcon());

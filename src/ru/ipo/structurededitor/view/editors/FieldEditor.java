@@ -10,8 +10,6 @@ import ru.ipo.structurededitor.view.elements.VisibleElement;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
-import java.util.Arrays;
-
 
 /**
  * Базовый класс для компонент редактирования ПОЯ при помощи редактора
@@ -67,8 +65,6 @@ public abstract class FieldEditor {
     }
 
     protected void setValue(Object value) {
-        System.out.println("Setting value: " + value);
-
         setValue(value, true);
     }
 
