@@ -29,10 +29,12 @@ public class ArrayEditor extends FieldEditor {
     //implementation note: here in this editor values in array are always parallel to elements in composite element
 
     //TODO add actions to swap array elements, to insert, backspace
+    //TODO if cursor is between elements, insert action is not available
 
     private EditorSettings itemsSettings;
 
-    private VisibleElementAction setNullValueAction;
+    private VisibleElementAction clearArrayAction;
+    private VisibleElementAction createArrayAction;
 
     public ArrayEditor(Object o, String fieldName, FieldMask mask, CompositeElement.Orientation orientation, char spaceChar, final StructuredEditorModel model, EditorSettings settings, EditorSettings itemsSettings) {
         super(o, fieldName, mask, model, settings);
@@ -42,24 +44,52 @@ public class ArrayEditor extends FieldEditor {
 
         setElement(arrayElement);
 
-        if (getValue() == null && ! getSettings().isNullAllowed())
-            setValue(createZeroArray(), false);
+        ensureValidValue();
 
-        createSetNullValueAction();
+        createActions();
 
         updateElement();
     }
 
-    private void createSetNullValueAction() {
-        String actionText = getSettings().getRemoveAllActionText();
+    private void ensureValidValue() {
+        int minElements = getSettings().getMinElements();
 
-        setNullValueAction = new VisibleElementAction(actionText, "delete.png", KeyStroke.getKeyStroke("control DELETE")) {
+        if (getValue() == null && ! getSettings().isNullAllowed())
+            setValue(createArray(minElements), false);
+
+        if (getValue() != null && Array.getLength(getValue()) < minElements)
+            setValue(createArray(minElements), false);
+    }
+
+    private void createActions() {
+        //Clear array action
+
+        String clearActionText = getSettings().getClearArrayActionText();
+
+        clearArrayAction = new VisibleElementAction(clearActionText, "delete.png", KeyStroke.getKeyStroke("control DELETE")) {
             @Override
             public void run(StructuredEditorModel model) {
                 if (getSettings().isNullAllowed())
                     setValue(null);
                 else
-                    setValue(createZeroArray());
+                    setValue(createArray(
+                            getSettings().getMinElements()
+                    ));
+
+                updateElement();
+
+                getModel().moveCaretToElement(getElement());
+            }
+        };
+
+        //Create array action
+
+        String createActionText = getSettings().getCreateArrayActionText();
+
+        createArrayAction = new VisibleElementAction(createActionText, "add.png", KeyStroke.getKeyStroke("ENTER")) {
+            @Override
+            public void run(StructuredEditorModel model) {
+                setValue(createArray(getSettings().getMinElements()));
 
                 updateElement();
 
@@ -68,8 +98,8 @@ public class ArrayEditor extends FieldEditor {
         };
     }
 
-    private Object createZeroArray() {
-        return Array.newInstance(getFieldType().getComponentType(), 0);
+    private Object createArray(int size) {
+        return Array.newInstance(getFieldType().getComponentType(), size);
     }
 
     /*private void addAddAction(VisibleElement arrayElement) {
@@ -94,7 +124,7 @@ public class ArrayEditor extends FieldEditor {
         //get value
         Object value = getValue();
         if (value == null)
-            value = createZeroArray();
+            value = createArray(0);
 
         //add element to the array
         int length = Array.getLength(value);
@@ -114,7 +144,7 @@ public class ArrayEditor extends FieldEditor {
         final EditorsRegistry reg = getModel().getEditorsRegistry();
 
         return reg.getEditor(
-                (Class<? extends DSLBean>) getObject().getClass(),
+                getObject().getClass().asSubclass(DSLBean.class),
                 getFieldName(),
                 getObject(),
                 MaskComposition.composeMasks(new ArrayFieldMask(index), getMask()),
@@ -127,7 +157,7 @@ public class ArrayEditor extends FieldEditor {
         TextElement nullElement = new TextElement(getModel(), null);
         nullElement.setNullText(getSettings().getNullText());
 
-        nullElement.addAction(new InsertArrayElementAction(0));
+        nullElement.addAction(createArrayAction);
 
         return nullElement;
     }
@@ -137,7 +167,8 @@ public class ArrayEditor extends FieldEditor {
         zeroElement.setNullText(getSettings().getZeroElementsText());
 
         zeroElement.addAction(new InsertArrayElementAction(0));
-        zeroElement.addAction(setNullValueAction);
+        if (getSettings().isNullAllowed())
+            zeroElement.addAction(clearArrayAction);
 
         return zeroElement;
     }
@@ -147,6 +178,8 @@ public class ArrayEditor extends FieldEditor {
         Object value = getValue();
 
         CompositeElement root = (CompositeElement) getElement();
+
+        root.clearActions();
 
         if (value == null) {
             root.setElements(createNullElement());
@@ -162,16 +195,25 @@ public class ArrayEditor extends FieldEditor {
 
         ArrayList<VisibleElement> elements = new ArrayList<VisibleElement>(length);
 
+        int maxElements = getSettings().getMaxElements();
+        int minElements = getSettings().getMinElements();
+
         for (int ind = 0; ind < length; ind++) {
             FieldEditor editor = createEditorInstance(ind);
             VisibleElement element = editor.getElement();
             ContainerElement container = new ContainerElement(getModel(), element);
 
-            container.addAction(new DeleteArrayElementAction(ind));
-            container.addAction(new InsertArrayElementAction(ind + 1));
+            if (length > minElements)
+                container.addAction(new DeleteArrayElementAction(ind));
+
+            if (length < maxElements)
+                container.addAction(new InsertArrayElementAction(ind + 1));
 
             elements.add(container);
         }
+
+        if (getSettings().isAllowClearFilledArray())
+            root.addAction(clearArrayAction);
 
         root.setElements(elements);
     }

@@ -14,6 +14,7 @@ public class DataShowUtils {
 
     private static final String RIGHT_TEXT_COLOR = "#000088";
     private static final String RIGHT_TEXT_COLOR_ERR = "#FF2200";
+    private static final String RIGHT_TEXT_COLOR_NOTHING = "#444444";
 
     public static String keyStroke2String(KeyStroke key) {
         if (key == null) return "";
@@ -362,45 +363,45 @@ public class DataShowUtils {
         return "unknown(0x" + Integer.toString(keyCode, 16) + ")";
     }
 
-    public static String htmlLayout(String leftText, String rightText, boolean error) {
+    //TODO think of this layout methods and an appropriate place for them
+
+    public static String htmlLayoutDataAndHint(String leftText, String rightText) {
         StringBuilder sb = new StringBuilder();
 
-//        sb
-//                .append("<html>")
-//                .append(leftText)
-//                .append(" ")
-//                .append("<span style='font:arial; color:#000088'>")
-//                .append(rightText)
-//                .append("</span>")
-//                .append("</html>");
+        sb
+                .append("<html>")
+                .append("<table><tr><td>")
+                .append(leftText)
+                .append("</td><td align='right' style='color:" + RIGHT_TEXT_COLOR + "; font-weight:100'>")
+                .append(rightText)
+                .append("</td></tr></table>")
+                .append("</html>");
 
-        if (error)
-            sb
-                    .append("<html>")
-                    .append("<span style='color:" + RIGHT_TEXT_COLOR_ERR + "; font-weight:100'>")
-                    .append(rightText)
-                    .append("</span>")
-                    .append("</html>");
-        else
-            sb
-                    .append("<html>")
-//                    .append("<table width='100%'><tr><td>")
-                    .append("<table><tr><td>")
-                    .append(leftText)
-                    .append("</td><td align='right' style='color:" + RIGHT_TEXT_COLOR + "; font-weight:100'>")
-                    .append(rightText)
-                    .append("</td></tr></table>")
-                    .append("</html>");
+        return sb.toString();
+    }
 
-//        sb
-//                .append("<html>")
-//                .append("<span style='position:absolute; left:0'>")
-//                .append(leftText)
-//                .append("</span>")
-//                .append("<span style='color:#000088;'>")
-//                .append(rightText)
-//                .append("</span>")
-//                .append("</html>");
+    public static String htmlLayoutError(String errorText) {
+        StringBuilder sb = new StringBuilder();
+
+        sb
+                .append("<html>")
+                .append("<span style='color:" + RIGHT_TEXT_COLOR_ERR + "; font-weight:100'>")
+                .append(errorText)
+                .append("</span>")
+                .append("</html>");
+
+        return sb.toString();
+    }
+
+    public static String htmlLayoutNothing(String errorText) {
+        StringBuilder sb = new StringBuilder();
+
+        sb
+                .append("<html>")
+                .append("<span style='color:" + RIGHT_TEXT_COLOR_NOTHING + "; font-weight:100; font-style: italic; '>")
+                .append(errorText)
+                .append("</span>")
+                .append("</html>");
 
         return sb.toString();
     }

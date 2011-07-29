@@ -11,6 +11,8 @@ import ru.ipo.structurededitor.model.EditorSettings;
 public class EnumSettings implements EditorSettings {
 
     private String nullText = "[Ничего не выбрано]";
+    private String selectVariantActionText = "Выбрать вариант";
+    private String selectOtherVariantActionText = "Выбрать другой вариант";
 
     public EnumSettings() {
     }
@@ -19,8 +21,26 @@ public class EnumSettings implements EditorSettings {
         return nullText;
     }
 
+    public String getSelectVariantActionText() {
+        return selectVariantActionText;
+    }
+
+    public String getSelectOtherVariantActionText() {
+        return selectOtherVariantActionText;
+    }
+
     public EnumSettings withNullText(String nullText) {
         this.nullText = nullText;
+        return this;
+    }
+
+    public EnumSettings withSelectVariantActionText(String selectVariantActionText) {
+        this.selectVariantActionText = selectVariantActionText;
+        return this;
+    }
+
+    public EnumSettings withSelectOtherVariantActionText(String selectOtherVariantActionText) {
+        this.selectOtherVariantActionText = selectOtherVariantActionText;
         return this;
     }
 }

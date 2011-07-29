@@ -13,10 +13,15 @@ public class ArraySettings implements EditorSettings {
     private boolean nullAllowed = false;
     private String nullText = "[нет данных]";
     private String zeroElementsText = "[нет элементов]";
-    private String removeAllActionText = "Удалить массив";
+
+    private String clearArrayActionText = "Очистить массив";
     private String insertActionText = "Вставить элемент массива";
-    private String removeActionText = "Удалить элемент массива" +
-            "";
+    private String removeActionText = "Удалить элемент массива";
+    private String createArrayActionText = "Создать массив";
+
+    private boolean allowClearFilledArray = false;
+    private int minElements = 0;
+    private int maxElements = Integer.MAX_VALUE;
 
     public ArraySettings() {
     }
@@ -33,8 +38,8 @@ public class ArraySettings implements EditorSettings {
         return zeroElementsText;
     }
 
-    public String getRemoveAllActionText() {
-        return removeAllActionText;
+    public String getClearArrayActionText() {
+        return clearArrayActionText;
     }
 
     public String getInsertActionText() {
@@ -43,6 +48,22 @@ public class ArraySettings implements EditorSettings {
 
     public String getRemoveActionText() {
         return removeActionText;
+    }
+
+    public int getMinElements() {
+        return minElements;
+    }
+
+    public int getMaxElements() {
+        return maxElements;
+    }
+
+    public boolean isAllowClearFilledArray() {
+        return allowClearFilledArray;
+    }
+
+    public String getCreateArrayActionText() {
+        return createArrayActionText;
     }
 
     public ArraySettings withNullAllowed(boolean nullAllowed) {
@@ -60,8 +81,8 @@ public class ArraySettings implements EditorSettings {
         return this;
     }
 
-    public ArraySettings withRemoveAllActionText(String removeAllActionText) {
-        this.removeAllActionText = removeAllActionText;
+    public ArraySettings withClearArrayActionText(String removeAllActionText) {
+        this.clearArrayActionText = removeAllActionText;
         return this;
     }
 
@@ -72,6 +93,26 @@ public class ArraySettings implements EditorSettings {
 
     public ArraySettings withRemoveActionText(String removeActionText) {
         this.removeActionText = removeActionText;
+        return this;
+    }
+
+    public ArraySettings withMaxElements(int maxElements) {
+        this.maxElements = maxElements;
+        return this;
+    }
+
+    public ArraySettings withMinElements(int minElements) {
+        this.minElements = minElements;
+        return this;
+    }
+
+    public ArraySettings withAllowClearFilledArray(boolean allowClearFilledArray) {
+        this.allowClearFilledArray = allowClearFilledArray;
+        return this;
+    }
+
+    public ArraySettings withCreateArrayActionText(String createArrayActionText) {
+        this.createArrayActionText = createArrayActionText;
         return this;
     }
 }

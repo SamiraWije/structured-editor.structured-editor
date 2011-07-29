@@ -32,8 +32,7 @@ public class TestEditor4 {
 
         f.setLayout(new BorderLayout());
 
-        f.add(new JScrollPane(structuredEditor), BorderLayout.CENTER);
-        f.add(structuredEditor.getActionsListComponent(), BorderLayout.SOUTH);
+        f.add(new StructuredEditorWithActions(structuredEditor), BorderLayout.CENTER);
         f.add(createButtonsPanel(structuredEditor), BorderLayout.NORTH);
 
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

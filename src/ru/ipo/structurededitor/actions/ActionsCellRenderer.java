@@ -23,16 +23,22 @@ public class ActionsCellRenderer extends DefaultListCellRenderer {
     public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
         VisibleElementAction action = (VisibleElementAction) value;
 
-        String strokeDescription;
-        if (actionsListComponent.hasKeyStroke(action))
-            strokeDescription = "(" + DataShowUtils.keyStroke2String(action.getKeyStroke()) + ")";
-        else
-            strokeDescription = "";
+        if (action != null) {
+            String strokeDescription;
+            if (actionsListComponent.hasKeyStroke(action))
+                strokeDescription = "(" + DataShowUtils.keyStroke2String(action.getKeyStroke()) + ")";
+            else
+                strokeDescription = "";
 
-        value = DataShowUtils.htmlLayout(action.getActionText(), strokeDescription, false);
+            value = DataShowUtils.htmlLayoutDataAndHint(action.getActionText(), strokeDescription);
+        } else {
+            value = DataShowUtils.htmlLayoutNothing("(Нет доступных действий)");
+        }
 
-        JLabel renderer = (JLabel)super.getListCellRendererComponent(list, value, index, index == ((ActionsListComponent)list).getHighlightIndex(), false);
-        renderer.setIcon(action.getIcon());
+        JLabel renderer = (JLabel) super.getListCellRendererComponent(list, value, index, index == ((ActionsListComponent) list).getHighlightIndex(), false);
+
+        if (action != null)
+            renderer.setIcon(action.getIcon());
 
         return renderer;
     }

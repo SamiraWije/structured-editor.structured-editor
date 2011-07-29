@@ -103,6 +103,7 @@ public class AutoCompleteListComponent extends JScrollPane {
         }
 
         list.setSelectedIndex(selectedIndex);
+        list.ensureIndexIsVisible(selectedIndex);
     }
 
     public void setSearchString(String searchString) {

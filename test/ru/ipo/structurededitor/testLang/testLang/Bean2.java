@@ -1,6 +1,7 @@
 package ru.ipo.structurededitor.testLang.testLang;
 
 import ru.ipo.structurededitor.model.*;
+import ru.ipo.structurededitor.view.editors.settings.ArraySettings;
 import ru.ipo.structurededitor.view.editors.settings.StringSettings;
 
 import java.util.Arrays;
@@ -20,6 +21,8 @@ public class Bean2 implements DSLBean {
     private boolean field5;
     private Count field6;
     private int[] field7;
+
+    private Count[] carray;
 
     public BeanA2[] getField8() {
         return field8;
@@ -42,7 +45,17 @@ public class Bean2 implements DSLBean {
                 new Horiz(new ConstantCell("Логический флаг: "), new FieldCell("field5")),
                 new Horiz(new ConstantCell("Поле с перечислимыми значениями: "), new FieldCell("field6")),
                 new Horiz(new ConstantCell("Массив целых чисел: "), new ArrayFieldCell("field7", ArrayFieldCell.Orientation.Horizontal).withSpaceChar(';')),
-                new Horiz(new ConstantCell("Массив структурных данных: "), new ArrayFieldCell("field8", ArrayFieldCell.Orientation.Horizontal).withSpaceChar(';'))
+                new Horiz(new ConstantCell("Массив структурных данных: "), new ArrayFieldCell("field8", ArrayFieldCell.Orientation.Horizontal).withSpaceChar(';')),
+                new Horiz(
+                        new ConstantCell("Массив енумов: "),
+                        new ArrayFieldCell("carray", ArrayFieldCell.Orientation.Vertical).
+                                withArraySettings(new ArraySettings()
+                                        .withNullAllowed(true)
+                                        .withMinElements(1)
+                                        //.withMaxElements(4)
+                                        //.withAllowClearFilledArray(true)
+                                )
+                )
         );
     }
 
@@ -108,5 +121,13 @@ public class Bean2 implements DSLBean {
         System.out.println(Arrays.toString(field7));
         System.out.println("}");
         this.field7 = field7;
+    }
+
+    public Count[] getCarray() {
+        return carray;
+    }
+
+    public void setCarray(Count[] carray) {
+        this.carray = carray;
     }
 }

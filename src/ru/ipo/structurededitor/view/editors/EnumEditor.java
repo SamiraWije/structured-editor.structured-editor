@@ -34,28 +34,9 @@ public class EnumEditor extends FieldEditor {
             UIManager.getColor("StructuredEditor.text.edit.color")
     );
 
-    private VisibleElementAction selectOtherValueAction = new VisibleElementAction("Выбрать другой элемент", "properties.png", KeyStroke.getKeyStroke("control SPACE")) { //TODO set normal text
-        @Override
-        public void run(StructuredEditorModel model) {
-            setValue(null);
-            updateElement();
+    private VisibleElementAction selectOtherValueAction;
 
-            ContainerElement element = (ContainerElement) getElement();
-
-            model.moveCaretToElement(element);
-
-            ((AutoCompleteTextElement) element.getSubElement()).popup();
-        }
-    };
-
-    private VisibleElementAction removeValueAction = new VisibleElementAction("Очистить выбор", "delete.png", KeyStroke.getKeyStroke("control DELETE")) { //TODO set normal text
-        @Override
-        public void run(StructuredEditorModel model) {
-            setValue(null);
-            updateElement();
-            model.moveCaretToElement(getElement());
-        }
-    };
+    private VisibleElementAction removeValueAction;
 
     private final PropertyChangeListener selectionListener = new PropertyChangeListener() {
         @Override
@@ -74,6 +55,33 @@ public class EnumEditor extends FieldEditor {
         ContainerElement element = new ContainerElement(model, createInnerElement());
 
         setElement(element);
+
+        createActions();
+    }
+
+    private void createActions() {
+        selectOtherValueAction = new VisibleElementAction(getSettings().getSelectOtherVariantActionText(), "properties.png", KeyStroke.getKeyStroke("control SPACE")) {
+            @Override
+            public void run(StructuredEditorModel model) {
+                setValue(null);
+                updateElement();
+
+                ContainerElement element = (ContainerElement) getElement();
+
+                model.moveCaretToElement(element);
+
+                ((AutoCompleteTextElement) element.getSubElement()).popup();
+            }
+        };
+
+        removeValueAction = new VisibleElementAction("Очистить выбор", "delete.png", KeyStroke.getKeyStroke("control DELETE")) { //TODO set normal text
+            @Override
+            public void run(StructuredEditorModel model) {
+                setValue(null);
+                updateElement();
+                model.moveCaretToElement(getElement());
+            }
+        };
     }
 
     private VisibleElement createInnerElement() {
@@ -90,6 +98,7 @@ public class EnumEditor extends FieldEditor {
 
             AutoCompleteTextElement element = new AutoCompleteTextElement(getModel(), completionElements);
             element.setNullText(getSettings().getNullText());
+            element.setShowPopupActionText(getSettings().getSelectVariantActionText());
 
             element.addPropertyChangeListener("selectedValue", selectionListener);
 

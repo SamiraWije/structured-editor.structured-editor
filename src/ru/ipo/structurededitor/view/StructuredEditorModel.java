@@ -17,6 +17,8 @@ import java.beans.PropertyChangeSupport;
  */
 public class StructuredEditorModel {
 
+    private final CaretEvent caretEvent = new CaretEvent(this);
+
     public Object getApp() {
         return app;
     }
@@ -58,6 +60,8 @@ public class StructuredEditorModel {
             setFocusedElement(findElementByPosition(line, col));
 
         repaint();
+
+        fireCaretShow(caretEvent);
     }
 
     private VisibleElement rootElement;
@@ -157,10 +161,6 @@ public class StructuredEditorModel {
 
     public void removeRepaintListener(RepaintListener l) {
         listenerList.remove(RepaintListener.class, l);
-    }
-
-    public void showCaret(Display d) {
-        fireCaretShow(new CaretEvent(this, d));
     }
 
     public void repaint() {

@@ -31,19 +31,25 @@ public class StructuredEditorUI extends ComponentUI {
     private int verticalMargin;
 
     private boolean caretVisible = true;
-    private ActionListener caretBlinkListener = new ActionListener() {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            //TODO implement normal blinking
-            caretVisible = !caretVisible;
-            editor.getModel().repaint();
-        }
-    };
-    private Timer caretBlinkTimer = new Timer(600, caretBlinkListener);
+    private Timer caretBlinkTimer;
 
     private PopupSupport popupSupport;
 
     private static HashMap<JComponent, StructuredEditorUI> editor2ui = new HashMap<JComponent, StructuredEditorUI>();
+
+    //listeners
+    private ActionListener caretBlinkListener;
+    private PropertyChangeListener focusedElementChangedListener;
+    private VisibleElementActionsChangedListener actionsChangedListener;
+    private FocusListener componentFocusListener;
+    private CaretListener caretMovedListener;
+    private RepaintListener repaintNeededListener;
+    private PopupComponentChangedListener popupListener;
+    private KeyAdapter componentKeyListener;
+
+    public StructuredEditorUI() {
+        createListeners();
+    }
 
     public static ComponentUI createUI(JComponent component) {
         StructuredEditorUI ui = editor2ui.get(component);
@@ -97,94 +103,34 @@ public class StructuredEditorUI extends ComponentUI {
         horizontalMargin = UIManager.getInt("StructuredEditor.horizontalMargin");
         verticalMargin = UIManager.getInt("StructuredEditor.verticalMargin");
 
+        caretBlinkTimer = new Timer(600, caretBlinkListener);
         caretBlinkTimer.start();
 
         editor.setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
 
         //add listeners
-        editor.getModel().addPropertyChangeListener("focusedElement",
-                new PropertyChangeListener() {
-                    public void propertyChange(PropertyChangeEvent evt) {
-                        popupSupport.hide();
+        editor.getModel().addPropertyChangeListener("focusedElement", focusedElementChangedListener);
+        editor.getModel().addVisibleElementActionsChangedListener(actionsChangedListener);
+        editor.addFocusListener(componentFocusListener);
+        editor.getModel().addCaretListener(caretMovedListener);
+        editor.getModel().addRepaintListener(repaintNeededListener);
+        editor.getModel().addPopupComponentChangedListener(popupListener);
+        editor.addKeyListener(componentKeyListener);
+    }
 
-                        updateAvailableActions();
+    @Override
+    public void uninstallUI(JComponent c) {
+        //TODO uninstall colors and cursors
+        caretBlinkTimer.removeActionListener(caretBlinkListener);
+        caretBlinkTimer.stop();
 
-                        redrawEditor();
-                    }
-                });
-
-        editor.getModel().addVisibleElementActionsChangedListener(new VisibleElementActionsChangedListener() {
-            @Override
-            public void actionsChanged(VisibleElementActionsChangedEvent e) {
-                if (e.getElement() == editor.getModel().getFocusedElement())
-                    updateAvailableActions();
-            }
-        });
-
-        editor.addFocusListener(new FocusListener() {
-            public void focusGained(FocusEvent e) {
-                redrawEditor();
-            }
-
-            public void focusLost(FocusEvent e) {
-                redrawEditor();
-            }
-        });
-
-        editor.getModel().addCaretListener(new CaretListener() {
-            public void showCaret(CaretEvent evt) {
-                //TODO rewrite
-                if (!editor.hasFocus() || !caretVisible)
-                    return;
-                Graphics g = evt.getD().getGraphics();
-
-                g.setColor(Color.BLUE);
-                int x0 = xToPixels(editor.getModel().getAbsoluteCaretX());
-                int y0 = yToPixels(editor.getModel().getAbsoluteCaretY());
-                int y1 = y0 + getCharHeight();
-                g.drawLine(x0-1, y0, x0-1, y1);
-
-                //TODO scroll
-                //editor.scrollRectToVisible(new Rectangle(x0, y0, 2, y1 - y0));
-            }
-        });
-
-        editor.getModel().addRepaintListener(new RepaintListener() {
-            public void repaint() {
-                redrawEditor();
-            }
-        });
-
-        editor.getModel().addPopupComponentChangedListener(new PopupComponentChangedListener() {
-            @Override
-            public void componentChanged(PopupComponentChangedEvent event) {
-                StructuredEditorModel model = editor.getModel();
-                VisibleElement element = model.getFocusedElement();
-                JComponent component = event.getPopupComponent();
-                if (element == null || component == null) {
-                    popupSupport.hide();
-                    return;
-                }
-
-                TextPosition position = element.getAbsolutePosition();
-                Point locationOnScreen = editor.getLocationOnScreen();
-
-                popupSupport.show(
-                        component,
-                        xToPixels(position.getColumn()) + (int)locationOnScreen.getX(),
-                        yToPixels(position.getLine() + element.getHeight()) + (int)locationOnScreen.getY()
-                );
-            }
-        });
-
-        editor.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                caretBlinkTimer.restart();
-                caretVisible = true;
-                redrawEditor();
-            }
-        });
+        editor.getModel().removePropertyChangeListener("focusedElement", focusedElementChangedListener);
+        editor.getModel().removeVisibleElementActionsChangedListener(actionsChangedListener);
+        editor.removeFocusListener(componentFocusListener);
+        editor.getModel().removeCaretListener(caretMovedListener);
+        editor.getModel().removeRepaintListener(repaintNeededListener);
+        editor.getModel().removePopupComponentChangedListener(popupListener);
+        editor.removeKeyListener(componentKeyListener);
     }
 
     private void updateAvailableActions() {
@@ -199,12 +145,6 @@ public class StructuredEditorUI extends ComponentUI {
         actionsListComponent.clearActions();
         for (VisibleElementAction action : actions)
             actionsListComponent.addAction(action);
-    }
-
-    @Override
-    public void uninstallUI(JComponent c) {
-        //TODO uninstall everything
-        caretBlinkTimer.removeActionListener(caretBlinkListener);
     }
 
     /**
@@ -240,12 +180,13 @@ public class StructuredEditorUI extends ComponentUI {
         //draw element
         element.drawElement(0, 0, d);
 
-        if (se.isFocusOwner() && !se.isView())
-            se.getModel().showCaret(d);
-        /*if (focusedRectangle != null) {
-            g.setColor(Color.blue);
-            g.drawRect(focusedRectangle.x, focusedRectangle.y, focusedRectangle.width, focusedRectangle.height);
-        }*/
+        if (se.isFocusOwner() && !se.isView() && caretVisible) {
+            g.setColor(Color.BLUE);
+            int x0 = xToPixels(editor.getModel().getAbsoluteCaretX());
+            int y0 = yToPixels(editor.getModel().getAbsoluteCaretY());
+            int y1 = y0 + getCharHeight();
+            g.drawLine(x0 - 1, y0, x0 - 1, y1);
+        }
     }
 
     /**
@@ -270,5 +211,102 @@ public class StructuredEditorUI extends ComponentUI {
 
     public int pixelsToY(int y) {
         return (y - verticalMargin) / getCharHeight();
+    }
+
+    private void createListeners() {
+        caretBlinkListener = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                //TODO implement normal blinking
+                caretVisible = !caretVisible;
+                editor.getModel().repaint();
+            }
+        };
+
+        focusedElementChangedListener = new PropertyChangeListener() {
+            public void propertyChange(PropertyChangeEvent evt) {
+                popupSupport.hide();
+
+                updateAvailableActions();
+
+                redrawEditor();
+            }
+        };
+
+        actionsChangedListener = new VisibleElementActionsChangedListener() {
+            @Override
+            public void actionsChanged(VisibleElementActionsChangedEvent e) {
+                if (e.getElement() == editor.getModel().getFocusedElement())
+                    updateAvailableActions();
+            }
+        };
+
+        componentFocusListener = new FocusListener() {
+            public void focusGained(FocusEvent e) {
+                redrawEditor();
+            }
+
+            public void focusLost(FocusEvent e) {
+                redrawEditor();
+            }
+        };
+
+        caretMovedListener = new CaretListener() {
+            public void showCaret(CaretEvent evt) {
+                //scroll component to make caret visible
+
+                int x0 = xToPixels(editor.getModel().getAbsoluteCaretX());
+                int y0 = yToPixels(editor.getModel().getAbsoluteCaretY());
+                int y1 = y0 + getCharHeight();
+
+                Rectangle visibleRect = editor.getVisibleRect();
+
+                //TODO think of all constants, especially about 2
+                if (!visibleRect.contains(x0 - 2, y0 - 2) || !visibleRect.contains(x0 + 2, y1 + 2))
+                    editor.scrollRectToVisible(new Rectangle(
+                            x0 - charWidth * 4,
+                            y0 - 4 * charHeight,
+                            charWidth * 8,
+                            y1 - y0 + 9 * charHeight
+                    ));
+            }
+        };
+
+        repaintNeededListener = new RepaintListener() {
+            public void repaint() {
+                redrawEditor();
+            }
+        };
+
+        popupListener = new PopupComponentChangedListener() {
+            @Override
+            public void componentChanged(PopupComponentChangedEvent event) {
+                StructuredEditorModel model = editor.getModel();
+                VisibleElement element = model.getFocusedElement();
+                JComponent component = event.getPopupComponent();
+                if (element == null || component == null) {
+                    popupSupport.hide();
+                    return;
+                }
+
+                TextPosition position = element.getAbsolutePosition();
+                Point locationOnScreen = editor.getLocationOnScreen();
+
+                popupSupport.show(
+                        component,
+                        xToPixels(position.getColumn()) + (int) locationOnScreen.getX(),
+                        yToPixels(position.getLine() + element.getHeight()) + (int) locationOnScreen.getY()
+                );
+            }
+        };
+
+        componentKeyListener = new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                caretBlinkTimer.restart();
+                caretVisible = true;
+                redrawEditor();
+            }
+        };
     }
 }

@@ -8,14 +8,9 @@ import java.util.EventObject;
  * Event: caret is need to be output
  */
 public class CaretEvent extends EventObject {
-    private Display d;
 
-    public CaretEvent(Object source, Display d) {
+    public CaretEvent(Object source) {
         super(source);
-        this.d = d;
     }
 
-    public Display getD() {
-        return d;
-    }
 }

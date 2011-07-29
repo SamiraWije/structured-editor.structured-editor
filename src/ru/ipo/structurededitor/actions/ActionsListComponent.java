@@ -17,7 +17,7 @@ import java.util.HashMap;
 public class ActionsListComponent extends JList implements MouseListener, MouseMotionListener, MouseWheelListener {
 
     private StructuredEditor editor;
-    private DefaultListModel model = new DefaultListModel();
+    private ActionsListModel model = new ActionsListModel();
     private HashMap<KeyStroke, VisibleElementAction> stroke2action = new HashMap<KeyStroke, VisibleElementAction>();
     private int highlightIndex = -1;
 
@@ -113,7 +113,13 @@ public class ActionsListComponent extends JList implements MouseListener, MouseM
 
         highlightIndex = locationToIndex(point);
 
+        //don't select item if mouse is not exactly over it.
+        //Otherwise an empty space after the last item always selects the last item
         if (highlightIndex != -1 && !getCellBounds(highlightIndex, highlightIndex).contains(point))
+            highlightIndex = -1;
+
+        //don't select element that shows that no actions are available
+        if (highlightIndex != -1 && model.getElementAt(highlightIndex) == null)
             highlightIndex = -1;
 
         repaint();

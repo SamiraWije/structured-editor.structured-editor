@@ -31,7 +31,7 @@ public class StringEditor extends FieldEditor {
         editorElement.setNullText(getSettings().getNullText());
         editorElement.setToolTipText(getSettings().getToolTipText());
 
-        initializeSetNullAction();
+        createActions();
 
         addTextChangedListener(editorElement);
 
@@ -54,7 +54,7 @@ public class StringEditor extends FieldEditor {
         });
     }
 
-    private void initializeSetNullAction() {
+    private void createActions() {
         String actionText = getSettings().isNullAllowed() ? "Удалить текст" : "Очистить текст";
 
         setNullAction = new VisibleElementAction(actionText, "delete.png", KeyStroke.getKeyStroke("control DELETE")) {
@@ -81,7 +81,7 @@ public class StringEditor extends FieldEditor {
     }
 
     private void updateSetNullActionVisibility(TextEditorElement textElement, String value) {
-        if (value == null)
+        if (value == null || value.equals(""))
             textElement.removeAction(setNullAction);
         else
             textElement.addAction(setNullAction);

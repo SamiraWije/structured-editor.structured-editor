@@ -53,9 +53,10 @@ public abstract class VisibleElement {
 
     public abstract void drawElement(int x0, int y0, Display d);
 
-    public boolean isView(){
+    public boolean isView() {
         return getModel().isView();
     }
+
     /**
      * Обработка нажатия клавиш
      *
@@ -264,12 +265,20 @@ public abstract class VisibleElement {
         }
     }
 
+    public void clearActions() {
+        if (actions.size() > 0) {
+            actions.clear();
+            model.fireVisibleElementActionsChangedEvent(this);
+        }
+    }
+
     public Collection<? extends VisibleElementAction> getActions() {
         return actions;
     }
 
     /**
      * Returns actions that are available from this element and from all its containers
+     *
      * @return
      */
     public Collection<? extends VisibleElementAction> getAllAvailableActions() {
