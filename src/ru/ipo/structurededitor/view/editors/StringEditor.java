@@ -7,7 +7,6 @@ import ru.ipo.structurededitor.view.StructuredEditorModel;
 import ru.ipo.structurededitor.view.editors.settings.StringSettings;
 import ru.ipo.structurededitor.view.elements.TextEditorElement;
 
-import javax.swing.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
@@ -57,7 +56,7 @@ public class StringEditor extends FieldEditor {
     private void createActions() {
         String actionText = getSettings().isNullAllowed() ? "Удалить текст" : "Очистить текст";
 
-        setNullAction = new VisibleElementAction(actionText, "delete.png", KeyStroke.getKeyStroke("control DELETE")) {
+        setNullAction = new VisibleElementAction(actionText, "delete.png", "control DELETE") {
             @Override
             public void run(StructuredEditorModel model) {
                 setValue(getSettings().isNullAllowed() ? null : "");

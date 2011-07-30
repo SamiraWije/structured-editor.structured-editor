@@ -19,7 +19,9 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by IntelliJ IDEA.
@@ -28,6 +30,8 @@ import java.util.List;
  * Time: 23:49:11
  */
 public class EnumEditor extends FieldEditor {
+
+    private static Map<Enum, String> enum2displayText = new HashMap<Enum, String>();
 
     private TextProperties enumTextProperties = new TextProperties(
             Font.BOLD,
@@ -52,15 +56,15 @@ public class EnumEditor extends FieldEditor {
     public EnumEditor(Object o, String fieldName, FieldMask mask, StructuredEditorModel model, EditorSettings settings) {
         super(o, fieldName, mask, model, settings);
 
+        createActions();
+
         ContainerElement element = new ContainerElement(model, createInnerElement());
 
         setElement(element);
-
-        createActions();
     }
 
     private void createActions() {
-        selectOtherValueAction = new VisibleElementAction(getSettings().getSelectOtherVariantActionText(), "properties.png", KeyStroke.getKeyStroke("control SPACE")) {
+        selectOtherValueAction = new VisibleElementAction(getSettings().getSelectOtherVariantActionText(), "properties.png", "control SPACE") {
             @Override
             public void run(StructuredEditorModel model) {
                 setValue(null);
@@ -74,7 +78,7 @@ public class EnumEditor extends FieldEditor {
             }
         };
 
-        removeValueAction = new VisibleElementAction("Очистить выбор", "delete.png", KeyStroke.getKeyStroke("control DELETE")) { //TODO set normal text
+        removeValueAction = new VisibleElementAction("Очистить выбор", "delete.png", "control DELETE") { //TODO set normal text
             @Override
             public void run(StructuredEditorModel model) {
                 setValue(null);
@@ -123,7 +127,7 @@ public class EnumEditor extends FieldEditor {
         ArrayList<AutoCompleteElement> elements = new ArrayList<AutoCompleteElement>();
 
         for (final Enum value : values) {
-            final String description = getDisplayTextForEnumValue(value);
+            final String shortcut = getDisplayTextForEnumValue(value);
 
             elements.add(new AutoCompleteElement() {
                 @Override
@@ -133,12 +137,12 @@ public class EnumEditor extends FieldEditor {
 
                 @Override
                 public String getShortcut() {
-                    return "";
+                    return shortcut;
                 }
 
                 @Override
                 public String getDescription() {
-                    return description;
+                    return null;
                 }
             });
         }
@@ -147,14 +151,21 @@ public class EnumEditor extends FieldEditor {
     }
 
     private String getDisplayTextForEnumValue(Enum value) {
-        try {
-            Class valueClass = value.getDeclaringClass();
-            Field field = valueClass.getField(value.name());
-            EnumFieldParams fieldParams = field.getAnnotation(EnumFieldParams.class);
-            return fieldParams == null ? value.toString() : fieldParams.displayText();
-        } catch (NoSuchFieldException ignored) { //not possible to occur
-            return "IDEA RULEZZZ";
+        String displayText = enum2displayText.get(value);
+        if (displayText == null) {
+            try {
+                Class valueClass = value.getDeclaringClass();
+                Field field = valueClass.getField(value.name());
+                EnumFieldParams fieldParams = field.getAnnotation(EnumFieldParams.class);
+                displayText = fieldParams == null ? value.toString() : fieldParams.displayText();
+            } catch (NoSuchFieldException ignored) { //not possible to occur
+                displayText = "IDEA RULEZZZ";
+            }
+
+            enum2displayText.put(value, displayText);
         }
+
+        return displayText;
     }
 
     private EnumSettings getSettings() {

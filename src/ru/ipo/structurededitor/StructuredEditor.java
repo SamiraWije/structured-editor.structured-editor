@@ -2,6 +2,7 @@ package ru.ipo.structurededitor;
 
 import ru.ipo.structurededitor.actions.ActionsListComponent;
 import ru.ipo.structurededitor.actions.VisibleElementAction;
+import ru.ipo.structurededitor.controller.ModificationListener;
 import ru.ipo.structurededitor.model.DefaultDSLBean;
 import ru.ipo.structurededitor.view.StructuredEditorModel;
 import ru.ipo.structurededitor.view.StructuredEditorUI;
@@ -205,6 +206,21 @@ public class StructuredEditor extends JComponent implements Scrollable {
         return actionsListComponent;
     }
 
+    @Override
+    public String getToolTipText(MouseEvent event) {
+        int col = getUI().pixelsToX(event.getX());
+        int line = getUI().pixelsToY(event.getY());
+
+        if (col < 0)
+            col = 0;
+        if (line < 0)
+            line = 0;
+
+        VisibleElement elementByPosition = model.findElementByPosition(line, col);
+
+        return elementByPosition == null ? null : elementByPosition.getToolTipText();
+    }
+
     //TODO this should be done when L&F is loading, now we don't load load L&F so this method must be called before any usage of Structured Editor
     public static void initializeStructuredEditorUI() {
         try {
@@ -225,7 +241,7 @@ public class StructuredEditor extends JComponent implements Scrollable {
         }
 
         UIManager.put("StructuredEditorUI", "ru.ipo.structurededitor.view.StructuredEditorUI");
-        UIManager.put("StructuredEditor.font", new Font(Font.MONOSPACED/*"DejaVu Sans Mono"*/, Font.PLAIN, 14));
+        UIManager.put("StructuredEditor.font", new Font(/*Font.MONOSPACED*/"DejaVu Sans Mono", Font.PLAIN, 14));
         UIManager.put("StructuredEditor.horizontalMargin", 2);
         UIManager.put("StructuredEditor.verticalMargin", 2);
         UIManager.put("StructuredEditor.focusedColor", new Color(0xFFFF88));
@@ -240,18 +256,31 @@ public class StructuredEditor extends JComponent implements Scrollable {
         UIManager.put("AutoCompleteTextElement.knownShortcut", new Color(0x33DD00));
     }
 
-    @Override
-    public String getToolTipText(MouseEvent event) {
-        int col = getUI().pixelsToX(event.getX());
-        int line = getUI().pixelsToY(event.getY());
+    //undo redo delegates
 
-        if (col < 0)
-            col = 0;
-        if (line < 0)
-            line = 0;
+    public boolean canUndo() {
+        return model.getModificationHistory().canUndo();
+    }
 
-        VisibleElement elementByPosition = model.findElementByPosition(line, col);
+    public boolean canRedo() {
+        return model.getModificationHistory().canRedo();
+    }
 
-        return elementByPosition == null ? null : elementByPosition.getToolTipText();
+    public void undo() {
+        model.getModificationHistory().undo();
+        model.updateModel();
+    }
+
+    public void redo() {
+        model.getModificationHistory().redo();
+        model.updateModel();
+    }
+
+    public void addModificationListener(ModificationListener listener) {
+        model.getModificationHistory().addModificationListener(listener);
+    }
+
+    public void removeModificationListener(ModificationListener listener) {
+        model.getModificationHistory().removeModificationListener(listener);
     }
 }

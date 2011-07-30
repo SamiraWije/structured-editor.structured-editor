@@ -1,9 +1,6 @@
 package ru.ipo.structurededitor.view;
 
-import ru.ipo.structurededitor.view.autocomplete.AutoCompleteCellRenderer;
-
 import javax.swing.*;
-import java.awt.event.KeyEvent;
 
 /**
  * Created by IntelliJ IDEA.

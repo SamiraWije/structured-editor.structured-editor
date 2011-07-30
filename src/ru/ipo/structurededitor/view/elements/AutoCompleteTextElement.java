@@ -25,8 +25,12 @@ import java.util.List;
  */
 public class AutoCompleteTextElement extends TextEditorElement implements PropertyChangeListener {
 
-    private final AutoCompleteListComponent persistentPopupComponent;
+    private AutoCompleteListComponent persistentPopupComponent;
     private Object selectedValue = null;
+
+    //This is a list of elements to complete. List is copied to persistentPopupComponent when it
+    //is first created and after that is not used at all
+    private List<AutoCompleteElement> elements;
 
     private static final KeyStroke KS_UP = KeyStroke.getKeyStroke("UP");
     private static final KeyStroke KS_DOWN = KeyStroke.getKeyStroke("DOWN");
@@ -34,7 +38,7 @@ public class AutoCompleteTextElement extends TextEditorElement implements Proper
     private static final KeyStroke KS_PG_DOWN = KeyStroke.getKeyStroke("PAGE_DOWN");
     private static final KeyStroke KS_CLOSE = KeyStroke.getKeyStroke("ESCAPE");
 
-    private final VisibleElementAction selectValueAction = new VisibleElementAction("Выбрать", "key.png", KeyStroke.getKeyStroke("ENTER")) {
+    private final VisibleElementAction selectValueAction = new VisibleElementAction("Выбрать", "key.png", "ENTER") {
         @Override
         public void run(StructuredEditorModel model) {
             Object value = getValueThatWillBeSelected();
@@ -47,10 +51,10 @@ public class AutoCompleteTextElement extends TextEditorElement implements Proper
         }
     };
 
-    private final VisibleElementAction showPopupAction = new VisibleElementAction("Выбрать вариант", "properties.png", KeyStroke.getKeyStroke("control SPACE")) { //TODO get text from data
+    private final VisibleElementAction showPopupAction = new VisibleElementAction("Выбрать вариант", "properties.png", "control SPACE") { //TODO get text from data
         @Override
         public void run(StructuredEditorModel model) {
-            model.showPopup(persistentPopupComponent);
+            model.showPopup(getPersistentPopupComponent());
             updateShowPopupAction();
             updateSelectActionVisibility();
         }
@@ -63,27 +67,9 @@ public class AutoCompleteTextElement extends TextEditorElement implements Proper
     public AutoCompleteTextElement(StructuredEditorModel model, List<AutoCompleteElement> elements) {
         super(model, null, true);
 
-        persistentPopupComponent = AutoCompleteListComponent.getComponent(elements, null);
-        persistentPopupComponent.addListSelectionListener(new ListSelectionListener() {
-            @Override
-            public void valueChanged(ListSelectionEvent e) {
-                if (!e.getValueIsAdjusting()) {
-                    updateSelectActionVisibility();
-                }
-            }
-        });
+        this.elements = elements;
 
-        persistentPopupComponent.addAutoCompleteElementSelectedListener(new AutoCompleteElementSelectedListener() {
-            @Override
-            public void elementChanged(AutoCompleteElementSelectedEvent e) {
-                AutoCompleteElement element = e.getElement();
-                if (element != null)
-                    selectValueAction.run(getModel());
-            }
-        });
-
-        addPropertyChangeListener("focused", this);
-        addPropertyChangeListener("text", this);
+        addPropertyChangeListener(this); //will listen for "focused" and "text"
 
         updateShowPopupAction();
         updateSelectActionVisibility();
@@ -99,18 +85,23 @@ public class AutoCompleteTextElement extends TextEditorElement implements Proper
             String text = getText();
 
             //show completion variants if user is typing
-            if (text != null && !persistentPopupComponent.isShowing())
+            boolean justPopped = false;
+            if (text != null && !persistentPopupComponentIsShowing()) {
                 popup();
+                justPopped = true;
+            }
 
-            //get old list size
-            Dimension oldPreferredSize = persistentPopupComponent.getPreferredSize();
+            if (justPopped || persistentPopupComponentIsShowing()) {
+                //get old list size
+                Dimension oldPreferredSize = getPersistentPopupComponent().getPreferredSize();
 
-            persistentPopupComponent.setSearchString(text);
+                getPersistentPopupComponent().setSearchString(text);
 
-            //reshow popup if size changed
-            Dimension newPreferredSize = persistentPopupComponent.getPreferredSize();
-            if (persistentPopupComponent.isShowing() && !oldPreferredSize.equals(newPreferredSize))
-                getModel().showPopup(persistentPopupComponent);
+                //reshow popup if size changed
+                Dimension newPreferredSize = getPersistentPopupComponent().getPreferredSize();
+                if (!oldPreferredSize.equals(newPreferredSize))
+                    getModel().showPopup(getPersistentPopupComponent());
+            }
 
             updateSelectActionVisibility();
         }
@@ -125,18 +116,18 @@ public class AutoCompleteTextElement extends TextEditorElement implements Proper
         KeyStroke ks = KeyStroke.getKeyStrokeForEvent(e);
 
         //several key events should be directed to popup component if it is shown
-        if (persistentPopupComponent.isShowing()) {
+        if (persistentPopupComponentIsShowing()) {
             if (ks.equals(KS_UP)) {
-                persistentPopupComponent.moveSelection(-1, true);
+                getPersistentPopupComponent().moveSelection(-1, true);
                 e.consume();
             } else if (ks.equals(KS_DOWN)) {
-                persistentPopupComponent.moveSelection(+1, true);
+                getPersistentPopupComponent().moveSelection(+1, true);
                 e.consume();
             } else if (ks.equals(KS_PG_UP)) {
-                persistentPopupComponent.moveSelection(-AutoCompleteListComponent.VISIBLE_ELEMENTS_COUNT, false);
+                getPersistentPopupComponent().moveSelection(-AutoCompleteListComponent.VISIBLE_ELEMENTS_COUNT, false);
                 e.consume();
             } else if (ks.equals(KS_PG_DOWN)) {
-                persistentPopupComponent.moveSelection(+AutoCompleteListComponent.VISIBLE_ELEMENTS_COUNT, false);
+                getPersistentPopupComponent().moveSelection(+AutoCompleteListComponent.VISIBLE_ELEMENTS_COUNT, false);
                 e.consume();
             } else if (ks.equals(KS_CLOSE)) {
                 getModel().hidePopup();
@@ -153,13 +144,13 @@ public class AutoCompleteTextElement extends TextEditorElement implements Proper
     private Object getValueThatWillBeSelected() {
         Object result = null;
 
-        if (persistentPopupComponent.isShowing()) {
+        if (persistentPopupComponentIsShowing()) {
             //if popup is visible then select value form popup
-            AutoCompleteElement selectedElement = persistentPopupComponent.getSelectedElement();
+            AutoCompleteElement selectedElement = getPersistentPopupComponent().getSelectedElement();
             if (selectedElement != null)
                 result = selectedElement.getValue();
-            if (result == null && persistentPopupComponent.getFilteredElementsCount() == 1) {
-                AutoCompleteElement theOnlyElement = persistentPopupComponent.getElementAt(0);
+            if (result == null && getPersistentPopupComponent().getFilteredElementsCount() == 1) {
+                AutoCompleteElement theOnlyElement = getPersistentPopupComponent().getElementAt(0);
                 if (theOnlyElement != null)
                     result = theOnlyElement.getValue();
             }
@@ -172,11 +163,23 @@ public class AutoCompleteTextElement extends TextEditorElement implements Proper
         String text = getText();
         if (text == null)
             return null;
-        AutoCompleteElement elementByShortcut = persistentPopupComponent.getElementByShortcut(text);
+        AutoCompleteElement elementByShortcut = getElementByShortcut(text);
         if (elementByShortcut != null)
             return elementByShortcut.getValue();
         else
             return null;
+    }
+
+    private AutoCompleteElement getElementByShortcut(String text) {
+        if (persistentPopupComponent != null)
+            return persistentPopupComponent.getElementByShortcut(text);
+        else {
+            //this will never occur, by the way
+            for (AutoCompleteElement element : elements)
+                if (element.getShortcut().equals(text))
+                    return element;
+            return null;
+        }
     }
 
     private void updateSelectActionVisibility() {
@@ -188,10 +191,14 @@ public class AutoCompleteTextElement extends TextEditorElement implements Proper
     }
 
     private void updateShowPopupAction() {
-        if (persistentPopupComponent.isShowing())
+        if (persistentPopupComponentIsShowing())
             removeAction(showPopupAction);
         else
             addAction(showPopupAction);
+    }
+
+    private boolean persistentPopupComponentIsShowing() {
+        return persistentPopupComponent != null && persistentPopupComponent.isShowing();
     }
 
     public void setSelectedValue(Object selectedValue) {
@@ -207,4 +214,35 @@ public class AutoCompleteTextElement extends TextEditorElement implements Proper
     public void setShowPopupActionText(String actionText) {
         showPopupAction.setActionText(actionText);
     }
+
+    //this method creates a component if it does not exist, so don't call it if component is not really needed
+    public AutoCompleteListComponent getPersistentPopupComponent() {
+        if (persistentPopupComponent == null) {
+            persistentPopupComponent = AutoCompleteListComponent.getComponent(elements, null);
+
+            persistentPopupComponent.addListSelectionListener(new ListSelectionListener() {
+                @Override
+                public void valueChanged(ListSelectionEvent e) {
+                    if (!e.getValueIsAdjusting()) {
+                        updateSelectActionVisibility();
+                    }
+                }
+            });
+
+            persistentPopupComponent.addAutoCompleteElementSelectedListener(new AutoCompleteElementSelectedListener() {
+                @Override
+                public void elementChanged(AutoCompleteElementSelectedEvent e) {
+                    AutoCompleteElement element = e.getElement();
+                    if (element != null)
+                        selectValueAction.run(getModel());
+                }
+            });
+
+            //let gc dispose the list
+            elements = null;
+        }
+
+        return persistentPopupComponent;
+    }
+
 }

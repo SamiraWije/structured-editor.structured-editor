@@ -66,7 +66,7 @@ public class ArrayEditor extends FieldEditor {
 
         String clearActionText = getSettings().getClearArrayActionText();
 
-        clearArrayAction = new VisibleElementAction(clearActionText, "delete.png", KeyStroke.getKeyStroke("control DELETE")) {
+        clearArrayAction = new VisibleElementAction(clearActionText, "delete.png", "control DELETE") {
             @Override
             public void run(StructuredEditorModel model) {
                 if (getSettings().isNullAllowed())
@@ -86,7 +86,7 @@ public class ArrayEditor extends FieldEditor {
 
         String createActionText = getSettings().getCreateArrayActionText();
 
-        createArrayAction = new VisibleElementAction(createActionText, "add.png", KeyStroke.getKeyStroke("ENTER")) {
+        createArrayAction = new VisibleElementAction(createActionText, "add.png", "ENTER") {
             @Override
             public void run(StructuredEditorModel model) {
                 setValue(createArray(getSettings().getMinElements()));
@@ -223,7 +223,7 @@ public class ArrayEditor extends FieldEditor {
         private int index;
 
         public InsertArrayElementAction(int index) {
-            super(getSettings().getInsertActionText(), "add.png", KeyStroke.getKeyStroke("ENTER"));
+            super(getSettings().getInsertActionText(), "add.png", "ENTER");
             this.index = index;
         }
 
@@ -240,7 +240,7 @@ public class ArrayEditor extends FieldEditor {
         private int index;
 
         public DeleteArrayElementAction(int index) {
-            super(getSettings().getRemoveActionText(), "delete.png", KeyStroke.getKeyStroke("control DELETE"));
+            super(getSettings().getRemoveActionText(), "delete.png", "control DELETE");
             this.index = index;
         }
 

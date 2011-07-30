@@ -21,6 +21,8 @@ public class Bean2 implements DSLBean {
     private boolean field5;
     private Count field6;
     private int[] field7;
+    private BeanA2[] field8;
+    private BeanA[] field9;
 
     private Count[] carray;
 
@@ -31,9 +33,6 @@ public class Bean2 implements DSLBean {
     public void setField8(BeanA2[] field8) {
         this.field8 = field8;
     }
-
-    private BeanA2[] field8;
-
 
     public Cell getLayout() {
         return new Vert(
@@ -53,7 +52,16 @@ public class Bean2 implements DSLBean {
                                         .withNullAllowed(true)
                                         .withMinElements(1)
                                         //.withMaxElements(4)
-                                        //.withAllowClearFilledArray(true)
+                                        .withAllowClearFilledArray(true)
+                                )
+                ),
+                new Horiz(
+                        new ConstantCell("Массив абстрактных бинов: "),
+                        new ArrayFieldCell("field9", ArrayFieldCell.Orientation.Vertical).
+                                withArraySettings(new ArraySettings()
+                                        .withNullAllowed(false)
+                                        .withMinElements(4)
+                                        .withMaxElements(4)
                                 )
                 )
         );
@@ -129,5 +137,13 @@ public class Bean2 implements DSLBean {
 
     public void setCarray(Count[] carray) {
         this.carray = carray;
+    }
+
+    public BeanA[] getField9() {
+        return field9;
+    }
+
+    public void setField9(BeanA[] field9) {
+        this.field9 = field9;
     }
 }

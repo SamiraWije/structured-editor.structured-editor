@@ -43,10 +43,6 @@ public class ModificationHistory {
     private ModificationEventSupport mes = new ModificationEventSupport();
 
     public void add(Modification mod) {
-        //TODO simplify everything
-        if (!mod.isUserIntended())
-            return;
-
         history.addLast(mod);
 
         future.clear();

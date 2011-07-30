@@ -1,6 +1,7 @@
 package ru.ipo.structurededitor;
 
 import ru.ipo.structurededitor.controller.ModificationHistory;
+import ru.ipo.structurededitor.controller.ModificationListener;
 import ru.ipo.structurededitor.model.DSLBean;
 import ru.ipo.structurededitor.model.DSLBeansRegistry;
 import ru.ipo.structurededitor.testLang.testLang.*;
@@ -19,8 +20,18 @@ import java.awt.event.ActionListener;
  */
 public class TestEditor4 {
 
+    private final JButton undo = new JButton("undo");
+    private final JButton redo = new JButton("redo");
+    private StructuredEditor structuredEditor;
+
     public static void main(String[] args) {
-        new TestEditor4();
+        Runnable go = new Runnable() {
+            public void run() {
+                new TestEditor4();
+            }
+        };
+
+        SwingUtilities.invokeLater(go);
     }
 
     public TestEditor4() {
@@ -28,12 +39,14 @@ public class TestEditor4 {
 
         Bean2 bean2 = new Bean2();
         final StructuredEditorModel model = createModel(bean2);
-        StructuredEditor structuredEditor = new StructuredEditor(model);
+        structuredEditor = new StructuredEditor(model);
 
         f.setLayout(new BorderLayout());
 
         f.add(new StructuredEditorWithActions(structuredEditor), BorderLayout.CENTER);
-        f.add(createButtonsPanel(structuredEditor), BorderLayout.NORTH);
+        f.add(createButtonsPanel(), BorderLayout.NORTH);
+
+        updateUndoRedoEnabled();
 
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         f.setSize(640, 480);
@@ -41,30 +54,30 @@ public class TestEditor4 {
         f.setVisible(true);
     }
 
-    private JPanel createButtonsPanel(StructuredEditor structuredEditor) {
+    private JPanel createButtonsPanel() {
         JPanel panel = new JPanel(new FlowLayout());
-        final JButton undo = new JButton("undo");
-        final JButton redo = new JButton("redo");
 
         panel.add(undo);
         panel.add(redo);
 
-        final StructuredEditorModel model = structuredEditor.getModel();
-        final ModificationHistory modificationHistory = model.getModificationHistory();
-
         undo.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                modificationHistory.undo();
-                model.updateModel();
+                structuredEditor.undo();
             }
         });
 
         redo.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                modificationHistory.redo();
-                model.updateModel();
+                structuredEditor.redo();
+            }
+        });
+
+        structuredEditor.addModificationListener(new ModificationListener() {
+            @Override
+            public void modificationPerformed() {
+                updateUndoRedoEnabled();
             }
         });
 
@@ -86,5 +99,10 @@ public class TestEditor4 {
         StructuredEditorModel model = new StructuredEditorModel(bean2);
         model.setBeansRegistry(reg);
         return model;
+    }
+
+    private void updateUndoRedoEnabled() {
+        redo.setEnabled(structuredEditor.canRedo());
+        undo.setEnabled(structuredEditor.canUndo());
     }
 }

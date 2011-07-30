@@ -21,7 +21,7 @@ public class ActionsListComponent extends JList implements MouseListener, MouseM
     private HashMap<KeyStroke, VisibleElementAction> stroke2action = new HashMap<KeyStroke, VisibleElementAction>();
     private int highlightIndex = -1;
 
-    private static final VisibleElementAction prototypeAction = new VisibleElementAction("", "add.png", KeyStroke.getKeyStroke("A")) {
+    private static final VisibleElementAction prototypeAction = new VisibleElementAction("", "add.png", "A") {
         @Override
         public void run(StructuredEditorModel model) {
             //do nothing, this action is needed for component to evaluate its size

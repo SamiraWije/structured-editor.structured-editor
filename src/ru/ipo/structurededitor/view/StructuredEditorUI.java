@@ -3,6 +3,7 @@ package ru.ipo.structurededitor.view;
 import ru.ipo.structurededitor.StructuredEditor;
 import ru.ipo.structurededitor.actions.ActionsListComponent;
 import ru.ipo.structurededitor.actions.VisibleElementAction;
+import ru.ipo.structurededitor.view.autocomplete.AutoCompleteListComponent;
 import ru.ipo.structurededitor.view.elements.VisibleElement;
 import ru.ipo.structurededitor.view.events.*;
 
@@ -291,6 +292,11 @@ public class StructuredEditorUI extends ComponentUI {
 
                 TextPosition position = element.getAbsolutePosition();
                 Point locationOnScreen = editor.getLocationOnScreen();
+
+                if (component instanceof AutoCompleteListComponent)
+                    ((AutoCompleteListComponent)component).setMinimumWidth(
+                            element.getWidth() * getCharWidth()
+                    );
 
                 popupSupport.show(
                         component,

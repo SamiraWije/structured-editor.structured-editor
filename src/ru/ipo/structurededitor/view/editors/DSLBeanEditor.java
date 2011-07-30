@@ -51,7 +51,7 @@ public class DSLBeanEditor extends FieldEditor implements PropertyChangeListener
         isAbstract = Modifier.isAbstract(beanType.getModifiers());
 
         if (isSetNullActionNeeded())
-            removeAction = new VisibleElementAction(getSetNullActionText(), "delete.png", KeyStroke.getKeyStroke("control DELETE")) {
+            removeAction = new VisibleElementAction(getSetNullActionText(), "delete.png", "control DELETE") {
                 @Override
                 public void run(StructuredEditorModel model) {
                     setValue(null);
@@ -60,7 +60,7 @@ public class DSLBeanEditor extends FieldEditor implements PropertyChangeListener
             };
 
         if (!isAbstract)
-            createBeanAction = new VisibleElementAction(getSettings().getCreateBeanActionText(), "add.png", KeyStroke.getKeyStroke("ENTER")) {
+            createBeanAction = new VisibleElementAction(getSettings().getCreateBeanActionText(), "add.png", "ENTER") {
                 @Override
                 public void run(StructuredEditorModel model) {
                     initializeNewBean(beanType, true);
@@ -85,7 +85,10 @@ public class DSLBeanEditor extends FieldEditor implements PropertyChangeListener
         if (value != null) {
             EditorRenderer renderer = new EditorRenderer(getModel(), (DSLBean) value);
             VisibleElement element = renderer.getRenderResult();
-            element.addAction(removeAction);
+
+            if (removeAction != null)
+                element.addAction(removeAction);
+
             return element;
         } else if (isAbstract) {
             return createCompletionElement();
@@ -97,7 +100,8 @@ public class DSLBeanEditor extends FieldEditor implements PropertyChangeListener
     private VisibleElement createNullElement() {
         TextElement element = new TextElement(getModel(), getSettings().getNullText());
 
-        element.addAction(createBeanAction);
+        if (createBeanAction != null)
+            element.addAction(createBeanAction);
 
         return element;
     }

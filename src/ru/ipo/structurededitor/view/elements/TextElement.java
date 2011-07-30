@@ -82,9 +82,13 @@ public class TextElement extends VisibleElement {
         lineDelimiterSymbols.add(length);
     }
 
+    /**
+     * <p>Does not repaint, caller must repaint editor if needed</p>
+     * TODO repaint is removed for performance, think of repaint strategy
+     * @param tp new text properties
+     */
     public void setTextProperties(TextProperties tp) {
         textProperties = tp;
-        repaint();
     }
 
     public TextProperties getTextProperties() {
@@ -161,27 +165,39 @@ public class TextElement extends VisibleElement {
         pcs.firePropertyChange("text", oldText, text);
     }
 
+    /**
+     * No repaint is done for performance reasons
+     * @param emptyTextProperties text properties to set
+     */
     public void setEmptyTextProperties(TextProperties emptyTextProperties) {
         this.emptyTextProperties = emptyTextProperties;
-        getModel().repaint();
+//        getModel().repaint();
     }
 
+    /**
+     * No repaint is done for performance reasons
+     * @param emptyText text to set
+     */
     public void setEmptyText(String emptyText) {
         this.emptyText = emptyText;
 
         setHeight(countHeight());
         setWidth(countWidth());
 
-        getModel().repaint();
+//        getModel().repaint();
     }
 
+    /**
+     * No repaint is done for performance reasons
+     * @param nullText text to set
+     */
     public void setNullText(String nullText) {
         this.nullText = nullText;
 
         setHeight(countHeight());
         setWidth(countWidth());
 
-        getModel().repaint();
+//        getModel().repaint();
     }
 
     public TextProperties getEmptyTextProperties() {

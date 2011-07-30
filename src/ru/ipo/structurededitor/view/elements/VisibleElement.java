@@ -247,7 +247,7 @@ public abstract class VisibleElement {
 
     public void addAction(VisibleElementAction action) {
         if (action == null)
-            return;
+            throw new IllegalArgumentException("Action may not be null");
 
         if (!actions.contains(action)) {
             actions.add(action);
@@ -257,7 +257,7 @@ public abstract class VisibleElement {
 
     public void removeAction(VisibleElementAction action) {
         if (action == null)
-            return;
+            throw new IllegalArgumentException("Action may not be null");
 
         if (actions.contains(action)) {
             actions.remove(action);

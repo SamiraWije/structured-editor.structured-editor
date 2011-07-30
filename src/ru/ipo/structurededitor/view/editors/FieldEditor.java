@@ -8,6 +8,7 @@ import ru.ipo.structurededitor.model.EditorSettings;
 import ru.ipo.structurededitor.view.StructuredEditorModel;
 import ru.ipo.structurededitor.view.elements.VisibleElement;
 
+import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
 
@@ -26,6 +27,7 @@ public abstract class FieldEditor {
     private FieldMask mask;
 
     private EditorSettings settings;
+    private final PropertyDescriptor propertyDescriptor;
 
     public FieldEditor(Object o, String fieldName, FieldMask mask, StructuredEditorModel model, EditorSettings settings) {
         this.o = o;
@@ -33,6 +35,11 @@ public abstract class FieldEditor {
         this.mask = mask;
         this.model = model;
         this.settings = settings;
+        try {
+            propertyDescriptor = new PropertyDescriptor(fieldName, o.getClass());
+        } catch (IntrospectionException e) {
+            throw new Error("Failed to create field editor"); //TODO think about exceptions handling
+        }
     }
 
     public FieldMask getMask() {
@@ -70,7 +77,7 @@ public abstract class FieldEditor {
 
     protected void setValue(Object value, boolean userIntended) {
         try {
-            PropertyDescriptor pd = new PropertyDescriptor(getFieldName(), getObject().getClass());
+            PropertyDescriptor pd = propertyDescriptor;
             Method rm = pd.getReadMethod();
             Method wm = pd.getWriteMethod();
             Object oldUnmaskedValue = rm.invoke(getObject());
@@ -109,7 +116,7 @@ public abstract class FieldEditor {
 
     protected Object getValue() {
         try {
-            PropertyDescriptor pd = new PropertyDescriptor(getFieldName(), getObject().getClass());
+            PropertyDescriptor pd = propertyDescriptor;
             Method wm = pd.getReadMethod();
             Object value = wm.invoke(getObject());
             if (mask != null) {
@@ -123,7 +130,7 @@ public abstract class FieldEditor {
 
     private Class<?> getUnmaskedFieldType() {
         try {
-            PropertyDescriptor pd = new PropertyDescriptor(getFieldName(), getObject().getClass());
+            PropertyDescriptor pd = propertyDescriptor;
             return pd.getPropertyType();
         } catch (Exception e1) {
             throw new Error("Fail in FieldEditor.getValueType()");

@@ -22,7 +22,7 @@ public class BooleanEditor extends FieldEditor {
 
         final TextElement editorElement = new TextElement(model);
 
-        editorElement.addAction(new VisibleElementAction(getSettings().getChangeActionText(), "properties.png", KeyStroke.getKeyStroke("SPACE")) {
+        editorElement.addAction(new VisibleElementAction(getSettings().getChangeActionText(), "properties.png", "SPACE") {
             @Override
             public void run(StructuredEditorModel model) {
                 Boolean value = (Boolean) getValue();

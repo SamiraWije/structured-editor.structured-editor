@@ -16,7 +16,7 @@ public class AutoCompleteListModel extends AbstractListModel {
     private final List<AutoCompleteElement> filteredElements = new ArrayList<AutoCompleteElement>();
 
     private String searchString = null;
-    private int maxShortcutWidth;
+    private int maxShortcutWidth; //TODO all max elements
     private int maxDescriptionWidth;
 
     private final MatchResult EMPTY_MATCH = new MatchResult(-1, -1);
@@ -36,8 +36,12 @@ public class AutoCompleteListModel extends AbstractListModel {
         maxShortcutWidth = 0;
         maxDescriptionWidth = 0;
         for (AutoCompleteElement element : this.filteredElements) {
-            int shortcutWidth = element.getShortcut().length();
-            int descriptionWidth = element.getDescription().length();
+
+            String shortcut = element.getShortcut();
+            String description = element.getDescription();
+
+            int shortcutWidth = shortcut == null ? 0 : shortcut.length();
+            int descriptionWidth = description == null ? 0 : description.length();
 
             if (shortcutWidth > maxShortcutWidth)
                 maxShortcutWidth = shortcutWidth;
@@ -98,8 +102,16 @@ public class AutoCompleteListModel extends AbstractListModel {
 
         String lowercaseSearch = searchString.toLowerCase();
 
-        int si = element.getShortcut().toLowerCase().indexOf(lowercaseSearch);
-        int di = element.getDescription().toLowerCase().indexOf(lowercaseSearch);
+        String shortcut = element.getShortcut();
+        String description = element.getDescription();
+
+        if (shortcut == null)
+            shortcut = "";
+        if (description == null)
+            description = "";
+
+        int si = shortcut.toLowerCase().indexOf(lowercaseSearch);
+        int di = description.toLowerCase().indexOf(lowercaseSearch);
 
         if (si >= 0 || di >= 0)
             return new MatchResult(si, di);
@@ -164,7 +176,13 @@ public class AutoCompleteListModel extends AbstractListModel {
             searchElements = filteredElements;
 
         for (AutoCompleteElement element : searchElements) {
-            int len = element.getShortcut().length() + element.getDescription().length();
+            String shortcut = element.getShortcut();
+            String description = element.getDescription();
+
+            int shortcutLength = shortcut == null ? 0 : shortcut.length();
+            int descriptionLength = description == null ? 0 : description.length();
+
+            int len = shortcutLength + descriptionLength;
             if (len > max) {
                 max = len;
                 longestElement = element;

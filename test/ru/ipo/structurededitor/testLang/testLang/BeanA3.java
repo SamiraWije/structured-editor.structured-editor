@@ -5,6 +5,7 @@ import ru.ipo.structurededitor.model.*;
 /**
  * Пример сложного поля из нескольких ячеек
  */
+@DSLBeanParams(shortcut = "bean a 3", description = "Третий бин")
 public class BeanA3 extends BeanA {
 
     private int x, y;

@@ -20,7 +20,22 @@ public class AutoCompleteListComponent extends JScrollPane {
 
     public static final int VISIBLE_ELEMENTS_COUNT = 10;
 
+    private static final AutoCompleteElement prototypeCell = new AutoCompleteElement() {
+        @Override
+        public Object getValue() {return null;}
+        @Override
+        public String getShortcut() {return "42";}
+        @Override
+        public String getDescription() {return "239";}
+    };
+
     private final ListCellRenderer cellRenderer = new AutoCompleteCellRenderer(this);
+
+    /**
+     * Minumum width of popup, setMinimumSize() does not work for some reason
+     * TODO find out why or remove this minimum at all
+     */
+    private int minimumWidth = 0;
 
     public static JComponent getComponent(AutoCompleteElement... elementsToSelect) {
         return getComponent(Arrays.asList(elementsToSelect), null);
@@ -37,6 +52,8 @@ public class AutoCompleteListComponent extends JScrollPane {
         setViewportView(createList(elementsToSelect));
         setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         setFocusable(false);
+
+        setFont(UIManager.getFont("StructuredEditor.font"));
     }
 
     private JComponent createList(List<AutoCompleteElement> elementsToSelect) {
@@ -113,7 +130,7 @@ public class AutoCompleteListComponent extends JScrollPane {
         //set size of the component
         JList list = getList();
         int modelSize = model.getSize();
-        list.setPrototypeCellValue(model.getTheLongestElement());
+        list.setPrototypeCellValue(prototypeCell);
         list.setFixedCellWidth(-1);
         list.setVisibleRowCount(modelSize > VISIBLE_ELEMENTS_COUNT ? VISIBLE_ELEMENTS_COUNT : modelSize);
     }
@@ -153,5 +170,13 @@ public class AutoCompleteListComponent extends JScrollPane {
 
     public AutoCompleteElement getElementAt(int index) {
         return (AutoCompleteElement) getModel().getElementAt(index);
+    }
+
+    public int getMinimumWidth() {
+        return minimumWidth;
+    }
+
+    public void setMinimumWidth(int minimumWidth) {
+        this.minimumWidth = minimumWidth;
     }
 }
