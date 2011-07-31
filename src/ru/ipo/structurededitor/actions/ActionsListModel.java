@@ -51,4 +51,8 @@ public class ActionsListModel extends AbstractListModel {
         fireIntervalRemoved(this, 0, size - 1);
         fireIntervalAdded(this, 0, 0);
     }
+
+    public boolean hasAvailableActions() {
+        return actions.size() > 0;
+    }
 }

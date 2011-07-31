@@ -47,6 +47,7 @@ public class StructuredEditorUI extends ComponentUI {
     private RepaintListener repaintNeededListener;
     private PopupComponentChangedListener popupListener;
     private KeyAdapter componentKeyListener;
+    private ShowActionsPopup tipPopup;
 
     public StructuredEditorUI() {
         createListeners();
@@ -108,6 +109,8 @@ public class StructuredEditorUI extends ComponentUI {
         caretBlinkTimer.start();
 
         editor.setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
+
+        tipPopup = new ShowActionsPopup(editor);
 
         //add listeners
         editor.getModel().addPropertyChangeListener("focusedElement", focusedElementChangedListener);
@@ -214,6 +217,24 @@ public class StructuredEditorUI extends ComponentUI {
         return (y - verticalMargin) / getCharHeight();
     }
 
+    private void popupTipIfNeeded() {
+        /*StructuredEditorModel model = editor.getModel();
+        VisibleElement focusedElement = model.getFocusedElement();
+        if (focusedElement == null)
+            return;
+        if (!editor.getActionsListComponent().hasAvailableActions())
+            return;
+
+        TextPosition position = focusedElement.getAbsolutePosition();
+        Point locationOnScreen = editor.getLocationOnScreen();
+
+        popupSupport.show(
+                tipPopup,
+                xToPixels(position.getColumn() + focusedElement.getWidth()) + locationOnScreen.x + 2,
+                yToPixels(position.getLine()) + locationOnScreen.y
+        );*/
+    }
+
     private void createListeners() {
         caretBlinkListener = new ActionListener() {
             @Override
@@ -229,6 +250,8 @@ public class StructuredEditorUI extends ComponentUI {
                 popupSupport.hide();
 
                 updateAvailableActions();
+
+                popupTipIfNeeded();
 
                 redrawEditor();
             }
@@ -287,6 +310,7 @@ public class StructuredEditorUI extends ComponentUI {
                 JComponent component = event.getPopupComponent();
                 if (element == null || component == null) {
                     popupSupport.hide();
+                    popupTipIfNeeded();
                     return;
                 }
 
@@ -294,9 +318,7 @@ public class StructuredEditorUI extends ComponentUI {
                 Point locationOnScreen = editor.getLocationOnScreen();
 
                 if (component instanceof AutoCompleteListComponent)
-                    ((AutoCompleteListComponent)component).setMinimumWidth(
-                            element.getWidth() * getCharWidth()
-                    );
+                    component.setMinimumSize(new Dimension(element.getWidth() * getCharWidth(), 0));
 
                 popupSupport.show(
                         component,

@@ -4,6 +4,8 @@ import ru.ipo.structurededitor.StructuredEditor;
 import ru.ipo.structurededitor.view.StructuredEditorModel;
 
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.HashMap;
@@ -21,6 +23,9 @@ public class ActionsListComponent extends JList implements MouseListener, MouseM
     private HashMap<KeyStroke, VisibleElementAction> stroke2action = new HashMap<KeyStroke, VisibleElementAction>();
     private int highlightIndex = -1;
 
+    private int maxVisibleActions = 6;
+    private boolean constantVisibleActions = true;
+
     private static final VisibleElementAction prototypeAction = new VisibleElementAction("", "add.png", "A") {
         @Override
         public void run(StructuredEditorModel model) {
@@ -35,12 +40,23 @@ public class ActionsListComponent extends JList implements MouseListener, MouseM
         setCellRenderer(actionsCellRenderer);
         setBackground(UIManager.getColor("ActionsListComponent.background"));
         setFocusable(false);
+
         setPrototypeCellValue(prototypeAction);
-        setVisibleRowCount(6);
+        setFixedCellWidth(-1);
+        setVisibleRowCount(maxVisibleActions);
+        //TODO don't allow select "no actions available"
         addMouseListener(this);
         addMouseMotionListener(this);
         //TODO make mouse wheel work well
 //        addMouseWheelListener(this);
+
+        //don't allow selection of elements
+        getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                setSelectedIndices(new int[0]);
+            }
+        });
     }
 
     public int getHighlightIndex() {
@@ -48,21 +64,29 @@ public class ActionsListComponent extends JList implements MouseListener, MouseM
     }
 
     public void addAction(VisibleElementAction action) {
-        model.addElement(action);
-
         VisibleElementAction concurrentAction = stroke2action.get(action.getKeyStroke());
         if (concurrentAction == null)
             stroke2action.put(action.getKeyStroke(), action);
+
+        model.addElement(action);
+
+        resizeByActions();
     }
 
     public void removeAction(VisibleElementAction action) {
-        model.removeElement(action);
         stroke2action.remove(action.getKeyStroke());
+
+        model.removeElement(action);
+
+        resizeByActions();
     }
 
     public void clearActions() {
-        model.clear();
         stroke2action.clear();
+
+        model.clear();
+
+        resizeByActions();
     }
 
     public VisibleElementAction getSelectedAction() {
@@ -128,5 +152,38 @@ public class ActionsListComponent extends JList implements MouseListener, MouseM
     @Override
     public void mouseWheelMoved(MouseWheelEvent e) {
         //mouseMoved(e);
+    }
+
+    public int getMaxVisibleActions() {
+        return maxVisibleActions;
+    }
+
+    public void setMaxVisibleActions(int maxVisibleActions) {
+        this.maxVisibleActions = maxVisibleActions;
+        resizeByActions();
+    }
+
+    public boolean isConstantVisibleActions() {
+        return constantVisibleActions;
+    }
+
+    public void setConstantVisibleActions(boolean constantVisibleActions) {
+        this.constantVisibleActions = constantVisibleActions;
+        resizeByActions();
+    }
+
+    public boolean hasAvailableActions() {
+        return model.hasAvailableActions();
+    }
+
+    private void resizeByActions() {
+        int size;
+
+        if (constantVisibleActions)
+            size = maxVisibleActions;
+        else
+            size = Math.min(model.getSize(), maxVisibleActions);
+
+        setVisibleRowCount(size);
     }
 }

@@ -31,12 +31,6 @@ public class AutoCompleteListComponent extends JScrollPane {
 
     private final ListCellRenderer cellRenderer = new AutoCompleteCellRenderer(this);
 
-    /**
-     * Minumum width of popup, setMinimumSize() does not work for some reason
-     * TODO find out why or remove this minimum at all
-     */
-    private int minimumWidth = 0;
-
     public static JComponent getComponent(AutoCompleteElement... elementsToSelect) {
         return getComponent(Arrays.asList(elementsToSelect), null);
     }
@@ -54,6 +48,9 @@ public class AutoCompleteListComponent extends JScrollPane {
         setFocusable(false);
 
         setFont(UIManager.getFont("StructuredEditor.font"));
+
+        getList().setPrototypeCellValue(prototypeCell);
+        getList().setFixedCellWidth(-1);
     }
 
     private JComponent createList(List<AutoCompleteElement> elementsToSelect) {
@@ -130,8 +127,6 @@ public class AutoCompleteListComponent extends JScrollPane {
         //set size of the component
         JList list = getList();
         int modelSize = model.getSize();
-        list.setPrototypeCellValue(prototypeCell);
-        list.setFixedCellWidth(-1);
         list.setVisibleRowCount(modelSize > VISIBLE_ELEMENTS_COUNT ? VISIBLE_ELEMENTS_COUNT : modelSize);
     }
 
@@ -172,11 +167,4 @@ public class AutoCompleteListComponent extends JScrollPane {
         return (AutoCompleteElement) getModel().getElementAt(index);
     }
 
-    public int getMinimumWidth() {
-        return minimumWidth;
-    }
-
-    public void setMinimumWidth(int minimumWidth) {
-        this.minimumWidth = minimumWidth;
-    }
 }

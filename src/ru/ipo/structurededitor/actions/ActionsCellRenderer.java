@@ -1,8 +1,8 @@
 package ru.ipo.structurededitor.actions;
 
 import ru.ipo.structurededitor.view.DataShowUtils;
+import ru.ipo.structurededitor.view.TwoSidedCellRenderer;
 
-import javax.swing.*;
 import java.awt.*;
 
 /**
@@ -11,16 +11,19 @@ import java.awt.*;
  * Date: 11.07.11
  * Time: 1:06
  */
-public class ActionsCellRenderer extends DefaultListCellRenderer {
+public class ActionsCellRenderer extends TwoSidedCellRenderer {
 
     private ActionsListComponent actionsListComponent;
 
     public ActionsCellRenderer(ActionsListComponent actionsListComponent) {
         this.actionsListComponent = actionsListComponent;
+        this.errorTextStyle = Font.ITALIC;
+        this.errorTextColor = new Color(0x444444);
+        this.rightTextToTheRight = false;
     }
 
     @Override
-    public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+    protected void setupRenderData(Object value, int index) {
         VisibleElementAction action = (VisibleElementAction) value;
 
         if (action != null) {
@@ -30,16 +33,15 @@ public class ActionsCellRenderer extends DefaultListCellRenderer {
             else
                 strokeDescription = "";
 
-            value = DataShowUtils.htmlLayoutDataAndHint(action.getActionText(), strokeDescription);
+            this.leftText = action.getActionText();
+            this.rightText = strokeDescription;
+            this.icon = action.getIcon();
+            this.renderStyle = RenderStyle.ShortcutAndDescription;
+            this.isSelected = index == actionsListComponent.getHighlightIndex();
         } else {
-            value = DataShowUtils.htmlLayoutNothing("(Нет доступных действий)");
+            this.leftText = "(Нет доступных действий)";
+            this.icon = null;
+            this.renderStyle = RenderStyle.NothingFound;
         }
-
-        JLabel renderer = (JLabel) super.getListCellRendererComponent(list, value, index, index == ((ActionsListComponent) list).getHighlightIndex(), false);
-
-        if (action != null)
-            renderer.setIcon(action.getIcon());
-
-        return renderer;
     }
 }
