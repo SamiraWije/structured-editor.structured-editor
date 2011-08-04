@@ -166,21 +166,22 @@ public class StructuredEditor extends JComponent implements Scrollable {
 
     private void registerCaretMovementKeyStrokes() {
         getInputMap().put(KeyStroke.getKeyStroke("pressed UP"), "move caret up");
-        getInputMap()
-                .put(KeyStroke.getKeyStroke("pressed DOWN"), "move caret down");
-        getInputMap()
-                .put(KeyStroke.getKeyStroke("pressed LEFT"), "move caret left");
-        getInputMap().put(KeyStroke.getKeyStroke("pressed RIGHT"),
-                "move caret right");
+        getInputMap().put(KeyStroke.getKeyStroke("pressed DOWN"), "move caret down");
+        getInputMap().put(KeyStroke.getKeyStroke("pressed LEFT"), "move caret left");
+        getInputMap().put(KeyStroke.getKeyStroke("pressed RIGHT"), "move caret right");
+        getInputMap().put(KeyStroke.getKeyStroke("pressed HOME"), "move caret home");
+        getInputMap().put(KeyStroke.getKeyStroke("pressed END"), "move caret to the end");
+        getInputMap().put(KeyStroke.getKeyStroke("pressed control LEFT"), "move caret left word");
+        getInputMap().put(KeyStroke.getKeyStroke("pressed control RIGHT"), "move caret right word");
 
-        getActionMap().put("move caret up",
-                new CaretMovementAction(CaretMovementAction.Direction.Up));
-        getActionMap().put("move caret down",
-                new CaretMovementAction(CaretMovementAction.Direction.Down));
-        getActionMap().put("move caret left",
-                new CaretMovementAction(CaretMovementAction.Direction.Left));
-        getActionMap().put("move caret right",
-                new CaretMovementAction(CaretMovementAction.Direction.Right));
+        getActionMap().put("move caret up", new CaretMovementAction(CaretMovementAction.Direction.Up));
+        getActionMap().put("move caret down", new CaretMovementAction(CaretMovementAction.Direction.Down));
+        getActionMap().put("move caret left", new CaretMovementAction(CaretMovementAction.Direction.Left));
+        getActionMap().put("move caret right", new CaretMovementAction(CaretMovementAction.Direction.Right));
+        getActionMap().put("move caret home", new CaretMovementAction(CaretMovementAction.Direction.Left, CaretMovementAction.Amount.Bound));
+        getActionMap().put("move caret to the end", new CaretMovementAction(CaretMovementAction.Direction.Right, CaretMovementAction.Amount.Bound));
+        getActionMap().put("move caret left word", new CaretMovementAction(CaretMovementAction.Direction.Left, CaretMovementAction.Amount.Word));
+        getActionMap().put("move caret right word", new CaretMovementAction(CaretMovementAction.Direction.Right, CaretMovementAction.Amount.Word));
     }
 
     public void setModel(StructuredEditorModel model) {
@@ -241,7 +242,7 @@ public class StructuredEditor extends JComponent implements Scrollable {
         }
 
         UIManager.put("StructuredEditorUI", "ru.ipo.structurededitor.view.StructuredEditorUI");
-        UIManager.put("StructuredEditor.font", new Font(/*Font.MONOSPACED*/"DejaVu Sans Mono", Font.PLAIN, 14));
+        UIManager.put("StructuredEditor.font", new Font(/*"Courier new"*//*Font.MONOSPACED*/"DejaVu Sans Mono", Font.PLAIN, 14));
         UIManager.put("StructuredEditor.horizontalMargin", 2);
         UIManager.put("StructuredEditor.verticalMargin", 2);
         UIManager.put("StructuredEditor.focusedColor", new Color(0xFFFF88));

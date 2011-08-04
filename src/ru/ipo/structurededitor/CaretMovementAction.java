@@ -12,17 +12,31 @@ import java.awt.event.ActionEvent;
  */
 public class CaretMovementAction extends AbstractAction {
 
+
     public static enum Direction {
         Up, Down, Left, Right,
     }
 
+
+    public static enum Amount {
+        Symbol, //move one symbol
+        Word, //move one word (not yet implemented)
+        Bound, //move to the end
+    }
+
     private final Direction dir;
+    private final Amount amount;
 
     /**
-     * @param dir
+     * @param dir direction to move
      */
     public CaretMovementAction(Direction dir) {
+        this(dir, Amount.Symbol);
+    }
+
+    public CaretMovementAction(Direction dir, Amount amount) {
         this.dir = dir;
+        this.amount = amount;
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -39,22 +53,45 @@ public class CaretMovementAction extends AbstractAction {
 
         int x = editorModel.getAbsoluteCaretX();
         int y = editorModel.getAbsoluteCaretY();
-        switch (dir) {
-            case Down:
-                if (y < rootLine + rootHeight - 1)
-                    y++;
+        switch (amount) {
+            case Word:
+                //TODO implement
                 break;
-            case Up:
-                if (y > rootLine)
-                    y--;
+            case Bound:
+                switch (dir) {
+                    case Down:
+                        y = rootLine + rootHeight - 1;
+                        break;
+                    case Up:
+                        y = rootLine;
+                        break;
+                    case Left:
+                        x = rootColumn;
+                        break;
+                    case Right:
+                        x = rootColumn + rootWidth;
+                        break;
+                }
                 break;
-            case Left:
-                if (x > rootColumn)
-                    x--;
-                break;
-            case Right:
-                if (x < rootColumn + rootWidth)
-                    x++;
+            case Symbol:
+                switch (dir) {
+                    case Down:
+                        if (y < rootLine + rootHeight - 1)
+                            y++;
+                        break;
+                    case Up:
+                        if (y > rootLine)
+                            y--;
+                        break;
+                    case Left:
+                        if (x > rootColumn)
+                            x--;
+                        break;
+                    case Right:
+                        if (x < rootColumn + rootWidth)
+                            x++;
+                        break;
+                }
                 break;
         }
 

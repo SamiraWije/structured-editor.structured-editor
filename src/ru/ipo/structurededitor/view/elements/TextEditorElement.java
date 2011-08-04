@@ -23,7 +23,7 @@ public class TextEditorElement extends TextElement {
     public TextEditorElement(StructuredEditorModel model, String text, boolean singleLined) {
         super(model, text, singleLined);
         TextProperties editableTextProperties = new TextProperties(
-                Font.BOLD,
+                /*Font.BOLD,*/ Font.PLAIN,
                 UIManager.getColor("StructuredEditor.text.edit.color")
         );
         setTextProperties(editableTextProperties);
@@ -164,22 +164,25 @@ public class TextEditorElement extends TextElement {
                 break;
             case KeyEvent.VK_HOME:
                 tryStoreMark(caretData, shift);
-                getModel().setAbsoluteCaretPosition(col0, line0 + caretData.line);
-                e.consume();
+                if (caretData.column != 0) {
+                    getModel().setAbsoluteCaretPosition(col0, line0 + caretData.line);
+                    e.consume();
+                }
                 break;
             case KeyEvent.VK_END:
                 tryStoreMark(caretData, shift);
-                getModel().setAbsoluteCaretPosition(
-                        col0 + getLine(caretData.line).length(),
-                        line0 + caretData.line
-                );
-                e.consume();
+                int newCol = getLine(caretData.line).length();
+                if (caretData.column != newCol) {
+                    getModel().setAbsoluteCaretPosition(col0 + newCol, line0 + caretData.line);
+                    e.consume();
+                }
                 break;
         }
     }
 
     /**
-     * Moves caret.
+     * Moves caret
+     * @param caretData caret position
      * @param keyCode VK_LEFT, VK_RIGHT, VK_UP, VK_BOTTOM
      */
     private void tryMoveCaret(CaretData caretData, int keyCode) {

@@ -60,7 +60,7 @@ public abstract class VisibleElement {
     /**
      * Обработка нажатия клавиш
      *
-     * @param e
+     * @param e key event
      */
 
     public void fireKeyEvent(KeyEvent e) {
@@ -219,6 +219,8 @@ public abstract class VisibleElement {
     protected void processKeyEvent(KeyEvent e) {
     }
 
+    //TODO make use of mouse events
+    @SuppressWarnings({"UnusedParameters"})
     protected void processMouseEvent(MouseEvent e) {
     }
 
@@ -232,8 +234,7 @@ public abstract class VisibleElement {
         pcs.removePropertyChangeListener(listener);
     }
 
-    public void removePropertyChangeListener(String propertyName,
-                                             PropertyChangeListener listener) {
+    public void removePropertyChangeListener(String propertyName, PropertyChangeListener listener) {
         pcs.removePropertyChangeListener(propertyName, listener);
     }
 
@@ -279,7 +280,7 @@ public abstract class VisibleElement {
     /**
      * Returns actions that are available from this element and from all its containers
      *
-     * @return
+     * @return collection of actions
      */
     public Collection<? extends VisibleElementAction> getAllAvailableActions() {
         List<VisibleElementAction> allActions = new ArrayList<VisibleElementAction>();
