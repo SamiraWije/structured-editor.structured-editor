@@ -154,14 +154,31 @@ public abstract class FieldEditor {
      * @return settings
      */
     protected <T extends EditorSettings> T getSettings(Class<T> settingsClass) {
+        //TODO report error for wrong types
         if (settings == null) {
+            //test if field type has static method DefaultEditorSettingsProvider
+            try {
+                Method getDefaultEditorSettings = getFieldType().getMethod("getDefaultEditorSettings");
+                settings = (EditorSettings) getDefaultEditorSettings.invoke(null);
+                //noinspection unchecked
+                return (T) settings;
+            } catch (Exception ignored) {
+            }
+
+            //create default settings
             try {
                 settings = settingsClass.newInstance();
+                //noinspection unchecked
+                return (T) settings;
             } catch (Exception ignored) {
             }
         }
 
-        return (T) settings;
+        if (settings == null)
+            throw new Error("Failed to get settings");
+        else
+            //noinspection unchecked
+            return (T) settings;
     }
 
     protected abstract void updateElement();

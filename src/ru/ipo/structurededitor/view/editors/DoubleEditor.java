@@ -4,6 +4,7 @@ import ru.ipo.structurededitor.controller.FieldMask;
 import ru.ipo.structurededitor.model.EditorSettings;
 import ru.ipo.structurededitor.view.StructuredEditorModel;
 import ru.ipo.structurededitor.view.TextProperties;
+import ru.ipo.structurededitor.view.editors.settings.NumberSettings;
 import ru.ipo.structurededitor.view.elements.TextEditorElement;
 
 import javax.swing.*;
@@ -36,15 +37,17 @@ public class DoubleEditor extends FieldEditor {
         );
         editorElement.setTextProperties(textProperties);
 
+        editorElement.setEmptyText(getSettings().getEmptyText());
+        editorElement.setNullText(getSettings().getEmptyText());
+
         editorElement.addPropertyChangeListener("text", new PropertyChangeListener() {
             public void propertyChange(PropertyChangeEvent evt) {
                 try {
                     double val = Double.parseDouble(editorElement.getText());
                     setValue(val);
                 } catch (NumberFormatException e) {
-                    setValue(null);
+                    setValue(0.0);
                 }
-
             }
         });
 
@@ -56,6 +59,10 @@ public class DoubleEditor extends FieldEditor {
         TextEditorElement editorElement = (TextEditorElement) getElement();
         Object val = getValue();
         editorElement.setText(val == null ? "" : val.toString());
+    }
+
+    private NumberSettings getSettings() {
+        return getSettings(NumberSettings.class);
     }
 
 }

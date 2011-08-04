@@ -25,7 +25,7 @@ public class TextElement extends VisibleElement {
     private final boolean singleLine;
 
     private TextProperties textProperties = new TextProperties(Font.PLAIN, Color.BLACK); //TODO move to UIManager
-    private TextProperties emptyTextProperties = new TextProperties(Font.BOLD, Color.GRAY);
+    private TextProperties emptyTextProperties = new TextProperties(Font.BOLD, new Color(0xBBBBBB));
 
     private String emptyText = "[Пусто]";
     private String nullText = "[null]";
