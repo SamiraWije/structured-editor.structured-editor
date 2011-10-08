@@ -157,9 +157,12 @@ public class StructuredEditor extends JComponent implements Scrollable {
             col = 0;
         if (line < 0)
             line = 0;
-
-
+        VisibleElement ve=model.findElementByPosition(line, col);
+        if (ve!=null){
+          ve.fireMouseEvent(e);
+        }
         model.setAbsoluteCaretPosition(col, line);
+
 
         super.processMouseEvent(e);
     }

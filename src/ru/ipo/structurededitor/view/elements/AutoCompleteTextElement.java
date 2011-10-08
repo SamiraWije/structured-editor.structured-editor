@@ -1,5 +1,6 @@
 package ru.ipo.structurededitor.view.elements;
 
+import org.w3c.dom.events.MouseEvent;
 import ru.ipo.structurededitor.actions.VisibleElementAction;
 import ru.ipo.structurededitor.view.StructuredEditorModel;
 import ru.ipo.structurededitor.view.autocomplete.AutoCompleteElement;
@@ -73,6 +74,19 @@ public class AutoCompleteTextElement extends TextEditorElement implements Proper
 
         updateShowPopupAction();
         updateSelectActionVisibility();
+    }
+    @Override
+    protected void processMouseEvent(java.awt.event.MouseEvent e) {
+        if (e.getClickCount()==2){
+            if (persistentPopupComponentIsShowing()) {
+                getModel().hidePopup();
+                updateSelectActionVisibility();
+                updateShowPopupAction();
+            }
+            else{
+                getModel().showPopup(getPersistentPopupComponent());
+            }
+        }
     }
 
     @Override
