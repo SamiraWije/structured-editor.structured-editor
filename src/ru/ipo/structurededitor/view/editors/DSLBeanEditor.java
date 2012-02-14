@@ -99,7 +99,6 @@ public class DSLBeanEditor extends FieldEditor implements PropertyChangeListener
 
     private VisibleElement createNullElement() {
         TextElement element = new TextElement(getModel(), getSettings().getNullText());
-
         if (createBeanAction != null)
             element.addAction(createBeanAction);
 

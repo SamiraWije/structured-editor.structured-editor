@@ -77,16 +77,16 @@ public class AutoCompleteTextElement extends TextEditorElement implements Proper
     }
     @Override
     protected void processMouseEvent(java.awt.event.MouseEvent e) {
-        if (e.getClickCount()==2){
-            if (persistentPopupComponentIsShowing()) {
+        //if ()
+        if (persistentPopupComponentIsShowing()) {
                 getModel().hidePopup();
                 updateSelectActionVisibility();
                 updateShowPopupAction();
             }
             else{
                 getModel().showPopup(getPersistentPopupComponent());
+
             }
-        }
     }
 
     @Override

@@ -191,6 +191,9 @@ public class StructuredEditorUI extends ComponentUI {
             int y1 = y0 + getCharHeight();
             g.drawLine(x0 - 1, y0, x0 - 1, y1);
         }
+        if (!editor.hasFocus()){
+           editor.getModel().hidePopup();
+        }
     }
 
     /**
