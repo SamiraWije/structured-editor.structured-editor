@@ -9,15 +9,49 @@ import ru.ipo.structurededitor.view.events.*;
 
 import javax.swing.*;
 import javax.swing.event.EventListenerList;
+import java.awt.*;
+import java.awt.datatransfer.*;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.io.IOException;
 
 /**
  * Корень дерева ячеек
  */
-public class StructuredEditorModel {
+public class StructuredEditorModel implements ClipboardOwner {
 
     private final CaretEvent caretEvent = new CaretEvent(this);
+
+    public void setClipboardContents(String aString) {
+        StringSelection stringSelection = new StringSelection(aString);
+        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        clipboard.setContents(stringSelection, this);
+    }
+    public void lostOwnership( Clipboard aClipboard, Transferable aContents) {
+     //do nothing
+   }
+    public String getClipboardContents() {
+        String result = "";
+        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        //odd: the Object param of getContents is not currently used
+        Transferable contents = clipboard.getContents(null);
+        boolean hasTransferableText =
+                (contents != null) &&
+                        contents.isDataFlavorSupported(DataFlavor.stringFlavor);
+        if (hasTransferableText) {
+            try {
+                result = (String) contents.getTransferData(DataFlavor.stringFlavor);
+            } catch (UnsupportedFlavorException ex) {
+                //highly unlikely since we are using a standard DataFlavor
+                System.out.println(ex);
+                ex.printStackTrace();
+            } catch (IOException ex) {
+                System.out.println(ex);
+                ex.printStackTrace();
+            }
+        }
+        return result;
+    }
 
     public Object getApp() {
         return app;

@@ -112,13 +112,25 @@ public class TextEditorElement extends TextElement {
         boolean alt = (e.getModifiersEx() & KeyEvent.ALT_DOWN_MASK) != 0;
         boolean alt_gr = (e.getModifiersEx() & KeyEvent.ALT_GRAPH_DOWN_MASK) != 0;
         boolean meta = (e.getModifiersEx() & KeyEvent.META_DOWN_MASK) != 0;
-
-        if (ctrl || alt || alt_gr || meta)
-            return;
-
         TextPosition absolutePosition = getAbsolutePosition();
         int col0 = absolutePosition.getColumn();
         int line0 = absolutePosition.getLine();
+
+        if (ctrl){
+            switch (e.getKeyCode()) {
+                case KeyEvent.VK_C:
+                    buttonCopy(caretData);
+                    e.consume();
+                    break;
+                case KeyEvent.VK_V:
+                    buttonPaste(caretData);
+                    setAbsoluteCaretPositionTo(col0, line0, caretData);
+                    e.consume();
+            }
+        }
+
+        if (ctrl || alt || alt_gr || meta)
+            return;
 
         if (isPrintable) {
             buttonChar(caretData, e.getKeyChar());
@@ -128,6 +140,7 @@ public class TextEditorElement extends TextElement {
         }
 
         switch (e.getKeyCode()) {
+
             case KeyEvent.VK_ENTER:
                 if (shift)
                     return;
@@ -248,6 +261,33 @@ public class TextEditorElement extends TextElement {
         getCaretByPosition(newCaretPos, caretData);
     }
 
+private void buttonPaste(CaretData caretData) {
+        if (markColumn != -1)
+            removeSelection(caretData);
+
+        String text = getText();
+        if (text == null)
+            text = "";
+
+        StringBuilder sb = new StringBuilder();
+
+        sb.append(text.substring(0, caretData.stringPosition));
+        //append whitespaces if cursor is to the right of the last line symbol, but it's not the null/empty text
+        if (!text.equals(""))
+            for (int i = caretData.columnNormalized; i < caretData.column; i++)
+                sb.append(' ');
+        String clip = getModel().getClipboardContents();
+        sb.append(clip);
+        int newCaretPos = sb.length();
+        sb.append(text.substring(caretData.stringPosition));
+
+        setText(sb.toString());
+        markColumn=caretData.column;
+        markLine=caretData.line;
+        getCaretByPosition(newCaretPos, caretData);
+    }
+
+
     private void buttonBackSpace(CaretData caretData) {
         if (markColumn != -1) {
             removeSelection(caretData);
@@ -315,7 +355,20 @@ public class TextEditorElement extends TextElement {
 
         getCaretByPosition(minPosition, caretData);
     }
+     private void buttonCopy(CaretData caretData) {
+        if (markColumn == -1)
+            return;
 
+        String text = getText();
+        if (text == null)
+            return;
+
+        CaretData markData = getElementCaret(markColumn, markLine);
+
+        int minPosition = Math.min(markData.stringPosition, caretData.stringPosition);
+        int maxPosition = Math.max(markData.stringPosition, caretData.stringPosition);
+        getModel().setClipboardContents(text.substring(minPosition,maxPosition));
+    }
     private CaretData getElementCaret() {
         TextPosition absolutePosition = getAbsolutePosition();
         return getElementCaret(
