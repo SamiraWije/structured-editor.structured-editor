@@ -92,7 +92,9 @@ public abstract class VisibleElement {
     public void fireMouseEvent(MouseEvent e) {
         processMouseEvent(e);
     }
-
+     public void fireMouseMotionEvent(MouseEvent e) {
+        processMouseMotionEvent(e);
+    }
     public TextPosition getAbsolutePosition() {
         int line = 0;
         int column = 0;
@@ -223,7 +225,9 @@ public abstract class VisibleElement {
     @SuppressWarnings({"UnusedParameters"})
     protected void processMouseEvent(MouseEvent e) {
     }
-
+    @SuppressWarnings({"UnusedParameters"})
+    protected void processMouseMotionEvent(MouseEvent e) {
+    }
     public void removeKeyListener(KeyListener listener) {
         keyListeners.remove(listener);
     }

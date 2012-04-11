@@ -138,17 +138,46 @@ public class StructuredEditor extends JComponent implements Scrollable {
             }
         }
     }
+    @Override
+    protected void processMouseMotionEvent(MouseEvent e) {
+      //we will make our processing only if editor is not in view mode and if mouse dragged event happened
+        if (view || (e.getID() != MouseEvent.MOUSE_DRAGGED)) {
+            super.processMouseMotionEvent(e);
+            return;
+        }
+     /* if  (e.getID() == MouseEvent.MOUSE_DRAGGED)
+            System.out.println("Dragging: "+e.paramString());*/
+        requestFocusInWindow();
+
+        //evaluate position of caret
+        int col = getUI().pixelsToX(e.getX());
+        int line = getUI().pixelsToY(e.getY());
+
+        if (col < 0)
+            col = 0;
+        if (line < 0)
+            line = 0;
+        e.translatePoint(col,line);
+        model.setAbsoluteCaretPosition(col, line);
+        VisibleElement ve=model.findElementByPosition(line, col);
+        if (ve!=null){
+          ve.fireMouseMotionEvent(e);
+        }
+
+
+
+        super.processMouseMotionEvent(e);
+    }
 
     @Override
     protected void processMouseEvent(MouseEvent e) {
-        //we will make our processing only if editor is not in view mode and if mouse clicked event happend
-        if (view || e.getID() != MouseEvent.MOUSE_CLICKED) {
+        //we will make our processing only if editor is not in view mode and if mouse clicked event happened
+        if (view || (e.getID() != MouseEvent.MOUSE_CLICKED) && (e.getID() != MouseEvent.MOUSE_PRESSED)) {
             super.processMouseEvent(e);
             return;
         }
-
         requestFocusInWindow();
-
+        //System.out.println("Clicking/Pressing: "+e.paramString());
         //evaluate position of caret
         int col = getUI().pixelsToX(e.getX());
         int line = getUI().pixelsToY(e.getY());

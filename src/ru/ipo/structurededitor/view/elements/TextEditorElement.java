@@ -8,6 +8,7 @@ import ru.ipo.structurededitor.view.TextProperties;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
 
 /**
  * Created by IntelliJ IDEA.
@@ -19,7 +20,7 @@ public class TextEditorElement extends TextElement {
 
     private int markColumn = -1;
     private int markLine = -1;
-
+    private CaretData preMarkCaret;
     public TextEditorElement(StructuredEditorModel model, String text, boolean singleLined) {
         super(model, text, singleLined);
         TextProperties editableTextProperties = new TextProperties(
@@ -102,6 +103,22 @@ public class TextEditorElement extends TextElement {
         }
     }
 
+    @Override
+    protected void processMouseEvent(MouseEvent e) {
+       markColumn=-1;
+       if (e.getID()==MouseEvent.MOUSE_PRESSED){
+            preMarkCaret=getElementCaret();
+       }
+
+    }
+    @Override
+    protected void processMouseMotionEvent(MouseEvent e) {
+       if (e.getID()==MouseEvent.MOUSE_DRAGGED){
+          markColumn=preMarkCaret.column;
+          markLine=preMarkCaret.line;
+       }
+
+    }
     @Override
     public void processKeyEvent(KeyEvent e) {
         CaretData caretData = getElementCaret();
@@ -277,6 +294,11 @@ private void buttonPaste(CaretData caretData) {
             for (int i = caretData.columnNormalized; i < caretData.column; i++)
                 sb.append(' ');
         String clip = getModel().getClipboardContents();
+        if (isSingleLine()){
+            clip=clip.replaceAll("\n","");
+            clip=clip.replaceAll("\r","");
+        }
+
         sb.append(clip);
         int newCaretPos = sb.length();
         sb.append(text.substring(caretData.stringPosition));
