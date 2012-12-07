@@ -115,7 +115,7 @@ public class TextElement extends VisibleElement {
         return lineDelimiterSymbols.get(index + 1) - 1;
     }
 
-    private int countWidth() {
+    protected int countWidth() {
         if (getText() == null)
             return nullText.length();
         else if (getText().equals(""))

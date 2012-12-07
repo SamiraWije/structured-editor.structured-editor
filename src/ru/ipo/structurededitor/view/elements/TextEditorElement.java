@@ -352,7 +352,7 @@ private void buttonPaste(CaretData caretData) {
         }
     }
 
-    private void removeSelection(CaretData caretData) {
+    protected void removeSelection(CaretData caretData) {
         if (markColumn == -1)
             return;
 
@@ -391,7 +391,7 @@ private void buttonPaste(CaretData caretData) {
         int maxPosition = Math.max(markData.stringPosition, caretData.stringPosition);
         getModel().setClipboardContents(text.substring(minPosition,maxPosition));
     }
-    private CaretData getElementCaret() {
+    protected CaretData getElementCaret() {
         TextPosition absolutePosition = getAbsolutePosition();
         return getElementCaret(
                 getModel().getAbsoluteCaretX() - absolutePosition.getColumn(),
@@ -416,7 +416,7 @@ private void buttonPaste(CaretData caretData) {
         return data;
     }
 
-    private void getElementCaret(int column, int line, CaretData caretData) {
+    protected void getElementCaret(int column, int line, CaretData caretData) {
 
         caretData.column = column;
         caretData.line = line;
@@ -430,7 +430,7 @@ private void buttonPaste(CaretData caretData) {
         }
     }
 
-    private void getCaretByPosition(int position, CaretData caretData) {
+    protected void getCaretByPosition(int position, CaretData caretData) {
         //get line for position
         int lines = getLinesCount();
 
@@ -449,7 +449,7 @@ private void buttonPaste(CaretData caretData) {
         caretData.columnNormalized = caretData.column;
     }
 
-    private static class CaretData {
+    protected static class CaretData {
 
         /**
          * строка с курсором

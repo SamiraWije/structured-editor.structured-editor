@@ -59,4 +59,11 @@ public class Display {
     public int yToPixels(int y) {
         return ui.yToPixels(y);
     }
+    public int pixelsToX(int x) {
+        return ui.pixelsToX(x);
+    }
+
+    public int pixelsToY(int y) {
+        return ui.pixelsToY(y);
+    }
 }

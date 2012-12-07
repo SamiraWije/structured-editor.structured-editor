@@ -196,7 +196,13 @@ public class StructuredEditorModel implements ClipboardOwner {
     public void removeRepaintListener(RepaintListener l) {
         listenerList.remove(RepaintListener.class, l);
     }
+    public void addImageLoadListener(ImageLoadListener l) {
+        listenerList.add(ImageLoadListener.class, l);
+    }
 
+    public void removeImageLoadListener(ImageLoadListener l) {
+        listenerList.remove(ImageLoadListener.class, l);
+    }
     public void repaint() {
         fireRepaint();
     }
@@ -209,6 +215,31 @@ public class StructuredEditorModel implements ClipboardOwner {
             }
         }
     }
+
+     public Image loadImage(String fileName) {
+        return fireImageLoad(new ImageLoadEvent(this,fileName));
+    }
+
+    protected Image fireImageLoad(ImageLoadEvent event) {
+        Object[] listeners = listenerList.getListenerList();
+        for (int i = listeners.length - 2; i >= 0; i -= 2) {
+            if (listeners[i] == ImageLoadListener.class) {
+                return ((ImageLoadListener) listeners[i + 1]).loadImage(event);
+            }
+        }
+        return null;
+    }
+    protected String fireImageLoad() {
+        Object[] listeners = listenerList.getListenerList();
+        for (int i = listeners.length - 2; i >= 0; i -= 2) {
+            if (listeners[i] == ImageLoadListener.class) {
+                return ((ImageLoadListener) listeners[i + 1]).selectImage();
+            }
+        }
+        return null;
+    }
+
+
 
     protected void fireCaretShow(CaretEvent ce) {
         Object[] listeners = listenerList.getListenerList();
@@ -403,5 +434,9 @@ public class StructuredEditorModel implements ClipboardOwner {
             }
             e = e.getParent();
         }
+    }
+
+    public String selectImage() {
+        return fireImageLoad();
     }
 }

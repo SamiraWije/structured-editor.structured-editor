@@ -4,6 +4,7 @@ import ru.ipo.structurededitor.controller.EditorsRegistry;
 import ru.ipo.structurededitor.model.*;
 import ru.ipo.structurededitor.view.editors.ArrayEditor;
 import ru.ipo.structurededitor.view.editors.FieldEditor;
+import ru.ipo.structurededitor.view.editors.PictureEditor;
 import ru.ipo.structurededitor.view.elements.CompositeElement;
 import ru.ipo.structurededitor.view.elements.TextElement;
 import ru.ipo.structurededitor.view.elements.VisibleElement;
@@ -28,7 +29,6 @@ public class EditorRenderer {
     public EditorRenderer(StructuredEditorModel model, DSLBean editableBean) {
         this.model = model;
         reg = model.getEditorsRegistry();
-
 
         Cell layout;
         if (model.isView() && editableBean instanceof DSLBeanView)
@@ -97,6 +97,17 @@ public class EditorRenderer {
                     model,
                     arrayFieldCell.getArraySettings(),
                     arrayFieldCell.getItemsSettings()
+            );
+            return ed.getElement();
+
+        } else if (layout instanceof PictureCell) {
+            PictureCell pictureCell = (PictureCell) layout;
+            PictureEditor ed = new PictureEditor(
+                    editableBean,
+                    pictureCell.getFileNameField(),
+                    null,
+                    model,
+                    pictureCell.getSettings()
             );
             return ed.getElement();
 
